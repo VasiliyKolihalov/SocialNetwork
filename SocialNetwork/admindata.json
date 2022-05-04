@@ -1,0 +1,8 @@
+﻿{
+  "AdminData" : {
+    "FirstName" : "Admin",
+    "SecondName" : "SocialNetwork",
+    "Email" : "admin@admin.ru",
+    "Password" : "IAmAdmin"
+  }
+}
