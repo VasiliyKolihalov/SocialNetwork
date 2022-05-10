@@ -4,7 +4,7 @@ namespace SocialNetwork.Repository;
 
 public interface IRolesRepository : IRepository<Role, int>
 {
-    public Role GetBasedName(string name);
-    public IEnumerable<Role> GetBasedUserId(int userId);
+    public Role GetFromName(string name);
+    public IEnumerable<Role> GetFromUserId(int userId);
     public void AddRoleToUser(int userId, int roleId);
 }

@@ -54,7 +54,7 @@ public class AccountService
 
     public string Login(LoginUserModel loginUserModel)
     {
-        User user = _applicationContext.Users.GetBasedEmail(loginUserModel.Email);
+        User user = _applicationContext.Users.GetFromEmail(loginUserModel.Email);
         if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, loginUserModel.Password))
         {
             throw new BadRequestException("Incorrect login or password");
@@ -76,7 +76,7 @@ public class AccountService
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
         };
 
-        List<Role> roles = _applicationContext.Roles.GetBasedUserId(user.Id).ToList();
+        List<Role> roles = _applicationContext.Roles.GetFromUserId(user.Id).ToList();
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role.Name));

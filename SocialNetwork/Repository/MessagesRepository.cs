@@ -23,56 +23,33 @@ public class MessagesRepository : IMessagesRepository
         {
             IEnumerable<Message> messages = connection.Query<Message>("SELECT * FROM Messages ");
 
-            string userMessageQuery =
+            string userQuery =
                 @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
 
-            string correspondenceQuery = @"SELECT Correspondences.Id, Correspondences.Name FROM Correspondences
-                INNER JOIN Messages ON Correspondences.Id = Messages.CorrespondencesId AND Messages.Id = @Id";
-
-            string usersCorrespondenceQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
-                INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
-
             foreach (var message in messages)
             {
-                message.Sender = connection.QuerySingle<User>(userMessageQuery, new {Id = message.Id});
-
-                message.Correspondence =
-                    connection.QuerySingle<Correspondence>(correspondenceQuery, new {Id = message.Id});
-                message.Correspondence.Users =
-                    connection.Query<User>(usersCorrespondenceQuery, new {Id = message.Correspondence.Id}).ToList();
+                message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
             }
 
             return messages;
         }
     }
 
-    public IEnumerable<Message> GetBasedCorrespondence(int correspondenceId)
+    public IEnumerable<Message> GetFromCorrespondence(int correspondenceId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             IEnumerable<Message> messages =
                 connection.Query<Message>("SELECT * FROM Messages WHERE CorrespondenceId = @Id", new {Id = correspondenceId});
 
-            string userMessageQuery =
+            string userQuery =
                 @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
             
-            string correspondenceQuery = "SELECT * FROM Correspondences WHERE Id = @Id";
-
-            string usersCorrespondenceQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
-                INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
-
             foreach (var message in messages)
             {
-                message.Sender = connection.QuerySingle<User>(userMessageQuery, new {Id = message.Id});
-
-                message.Correspondence =
-                    connection.QuerySingle<Correspondence>(correspondenceQuery, new {Id = correspondenceId});
-                message.Correspondence.Users =
-                    connection.Query<User>(usersCorrespondenceQuery, new {Id = correspondenceId}).ToList();
+                message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
             }
 
             return messages;
@@ -89,20 +66,11 @@ public class MessagesRepository : IMessagesRepository
             if (message == null)
                 throw new NotFoundException("Message not found");
 
-            string userMessageQuery =
+            string userQuery =
                 @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
-
-            string correspondenceQuery = @"SELECT Correspondences.Id, Correspondences.Name FROM Correspondences
-                INNER JOIN Messages ON Correspondences.Id = Messages.CorrespondenceId AND Messages.Id = @Id";
-
-            string usersCorrespondenceQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
-                INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
-
-            message.Sender = connection.QuerySingle<User>(userMessageQuery, new {Id = message.Id});
-            message.Correspondence = connection.QuerySingle<Correspondence>(correspondenceQuery, new {Id = message.Id});
-            message.Correspondence.Users = connection.Query<User>(usersCorrespondenceQuery, new {Id = message.Correspondence.Id}).ToList();
+            
+            message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
 
             return message;
         }
@@ -119,7 +87,7 @@ public class MessagesRepository : IMessagesRepository
                 new
                 {
                     Text = item.Text, DateTime = DateTime.Now, IsEdited = false,
-                    UserId = item.Sender.Id, CorrespondenceId = item.Correspondence.Id
+                    UserId = item.Sender.Id, CorrespondenceId = item.CorrespondenceId
                 });
             item.Id = messagesId;
         }
@@ -131,7 +99,9 @@ public class MessagesRepository : IMessagesRepository
         {
             var sqlQuery =
                 "UPDATE Messages SET Text = @Text, IsEdited = @IsEdited WHERE Id = @Id";
-            connection.Query(sqlQuery, new {Text = item.Text, IsEdited = true, Id = item.Id});
+
+            item.IsEdited = true;
+            connection.Query(sqlQuery, item);
         }
     }
 

@@ -73,13 +73,13 @@ public class RolesService
 
     public RoleViewModel Delete(int roleId)
     {
-        Role deletedRole = _applicationContext.Roles.Get(roleId);
+        Role role = _applicationContext.Roles.Get(roleId);
         
         _applicationContext.Roles.Delete(roleId);
         
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Role, RoleViewModel>());
         var mapper = new Mapper(mapperConfig);
 
-        return mapper.Map<Role, RoleViewModel>(deletedRole);
+        return mapper.Map<Role, RoleViewModel>(role);
     }
 }
