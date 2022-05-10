@@ -24,7 +24,7 @@ public class RolesRepository : IRolesRepository
         }
     }
 
-    public IEnumerable<Role> GetBasedUserId(int userId)
+    public IEnumerable<Role> GetFromUserId(int userId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
@@ -35,7 +35,7 @@ public class RolesRepository : IRolesRepository
         }
     }
 
-    public Role GetBasedName(string name)
+    public Role GetFromName(string name)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {

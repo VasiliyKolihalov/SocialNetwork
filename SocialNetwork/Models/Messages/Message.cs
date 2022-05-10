@@ -10,5 +10,5 @@ public class Message
     public DateTime DateTime { get; set; }
     public bool IsEdited { get; set; }
     public User Sender { get; set; }
-    public Correspondence Correspondence { get; set; }
+    public int CorrespondenceId { get; set; }
 }

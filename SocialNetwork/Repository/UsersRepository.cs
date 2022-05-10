@@ -38,7 +38,7 @@ public class UsersRepository : IUsersRepository
         }
     }
 
-    public User GetBasedEmail(string email)
+    public User GetFromEmail(string email)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
@@ -68,7 +68,7 @@ public class UsersRepository : IUsersRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             var sqlQuery =
-                "UPDATE Users SET FirstName = @FirstName, SecondName = @SecondName, Email = @Email, PasswordHash = @PasswordHash WHERE Id = @Id";
+                "UPDATE Users SET FirstName = @FirstName, SecondName = @SecondName, Email = @Email WHERE Id = @Id";
             connection.Query(sqlQuery, item);
         }
     }

@@ -36,20 +36,11 @@ public class CorrespondencesService
 
     public CorrespondenceViewModel GetWithMessages(int correspondenceId, int userId)
     {
-        Correspondence correspondence;
-        try
-        {
-            correspondence = _applicationContext.Correspondences.Get(correspondenceId);
-            if (correspondence.Users.FirstOrDefault(x => x.Id == userId) == null)
-            {
-                throw new Exception();
-            }
-        }
-        catch
-        {
+        Correspondence correspondence = _applicationContext.Correspondences.Get(correspondenceId);
+        
+        if (!correspondence.Users.Any(x => x.Id == userId))
             throw new Exception("Correspondence not found");
-        }
-
+        
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Correspondence, CorrespondenceViewModel>();
@@ -63,22 +54,23 @@ public class CorrespondencesService
 
         correspondencePreviewModel.Messages =
             mapper.Map<IEnumerable<Message>, List<MessageViewModel>>(
-                _applicationContext.Messages.GetBasedCorrespondence(correspondenceId));
+                _applicationContext.Messages.GetFromCorrespondence(correspondenceId));
 
         return correspondencePreviewModel;
     }
 
-    public CorrespondencePreviewModel StartCorrespondence(MessageAddModel messageAddModel, List<int> participantsId,
-        int senderId)
+    public CorrespondencePreviewModel StartCorrespondence(MessageAddModel messageAddModel, List<int> participantsId, int senderId)
     {
         User sender = _applicationContext.Users.Get(senderId);
 
         var participants = new List<User>();
         foreach (int id in participantsId)
         {
+            if (participants.Any(x => x.Id == id))
+                throw new BadRequestException("User is already in correspondence");
+            
             participants.Add(_applicationContext.Users.Get(id));
         }
-
         participants.Add(sender);
 
         var mapperConfig = new MapperConfiguration(cfg =>
@@ -100,7 +92,7 @@ public class CorrespondencesService
 
         Message message = mapper.Map<MessageAddModel, Message>(messageAddModel);
         message.Sender = sender;
-        message.Correspondence = correspondence;
+        message.CorrespondenceId = correspondence.Id;
         _applicationContext.Messages.Add(message);
 
         CorrespondencePreviewModel correspondencePreviewModel =
@@ -111,20 +103,10 @@ public class CorrespondencesService
     public CorrespondencePreviewModel SendMessage(MessageAddModel messageAddModel, int correspondenceId, int senderId)
     {
         User sender = _applicationContext.Users.Get(senderId);
-
-        Correspondence correspondence;
-        try
-        {
-            correspondence = _applicationContext.Correspondences.Get(correspondenceId);
-            if (correspondence.Users.FirstOrDefault(x => x.Id == senderId) == null)
-            {
-                throw new Exception();
-            }
-        }
-        catch
-        {
+        Correspondence correspondence = _applicationContext.Correspondences.Get(correspondenceId);
+        
+        if (!correspondence.Users.Any(x => x.Id == senderId))
             throw new NotFoundException("Correspondence not found");
-        }
 
         var mapperConfig = new MapperConfiguration(cfg =>
         {
@@ -138,7 +120,7 @@ public class CorrespondencesService
 
         Message message = mapper.Map<MessageAddModel, Message>(messageAddModel);
         message.Sender = sender;
-        message.Correspondence = correspondence;
+        message.CorrespondenceId = correspondenceId;
         _applicationContext.Messages.Add(message);
 
         CorrespondencePreviewModel correspondencePreviewModel =
@@ -148,19 +130,11 @@ public class CorrespondencesService
 
     public CorrespondencePreviewModel EditMessage(MessageUpdateModel messageUpdateModel, int senderId)
     {
-        Message message;
-        try
-        {
-            message = _applicationContext.Messages.Get(messageUpdateModel.Id);
-
-            if (message.Sender.Id != senderId)
-                throw new Exception();
-        }
-        catch
-        {
+        Message message = _applicationContext.Messages.Get(messageUpdateModel.Id);
+        
+        if (message.Sender.Id != senderId) 
             throw new NotFoundException("Message not found");
-        }
-
+            
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<MessageUpdateModel, Message>();
@@ -175,19 +149,19 @@ public class CorrespondencesService
         updateMessage.IsEdited = true;
         _applicationContext.Messages.Update(updateMessage);
 
+        Correspondence correspondence = _applicationContext.Correspondences.Get(message.CorrespondenceId);
+
         CorrespondencePreviewModel correspondencePreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(message.Correspondence);
+            mapper.Map<Correspondence, CorrespondencePreviewModel>(correspondence);
         return correspondencePreviewModel;
     }
 
     public CorrespondencePreviewModel DeleteMessage(long messageId, int correspondenceId, int senderId)
     {
         Message message = _applicationContext.Messages.Get(messageId);
-        
+
         if (message.Sender.Id != senderId)
-        {
             throw new NotFoundException("Message not found");
-        }
         
         _applicationContext.Messages.Delete(messageId);
 

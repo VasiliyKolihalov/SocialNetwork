@@ -4,5 +4,5 @@ namespace SocialNetwork.Repository;
 
 public interface IUsersRepository : IRepository<User, int>
 {
-    public User GetBasedEmail(string email);
+    public User GetFromEmail(string email);
 }

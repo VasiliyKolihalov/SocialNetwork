@@ -57,6 +57,7 @@ builder.Services.AddTransient<UsersService>();
 builder.Services.AddTransient<AccountService>();
 builder.Services.AddTransient<CorrespondencesService>();
 builder.Services.AddTransient<RolesService>();
+builder.Services.AddTransient<CommunitiesService>();
 
 #endregion
 
@@ -81,7 +82,7 @@ static void InitializeRolesAndAdministrator(ApplicationContext applicationContex
     User admin;
     try
     {
-        admin = applicationContext.Users.GetBasedEmail(adminData["Email"]);
+        admin = applicationContext.Users.GetFromEmail(adminData["Email"]);
     }
     catch
     {
@@ -96,7 +97,7 @@ static void InitializeRolesAndAdministrator(ApplicationContext applicationContex
     Role adminRole;
     try
     {
-        adminRole = applicationContext.Roles.GetBasedName(RolesNameConstants.AdminRole);
+        adminRole = applicationContext.Roles.GetFromName(RolesNameConstants.AdminRole);
     }
     catch
     {
@@ -105,7 +106,7 @@ static void InitializeRolesAndAdministrator(ApplicationContext applicationContex
     }
 
 
-    IEnumerable<Role> roles = applicationContext.Roles.GetBasedUserId(admin.Id);
+    IEnumerable<Role> roles = applicationContext.Roles.GetFromUserId(admin.Id);
     
     if (!roles.Any(x => x.Name == RolesNameConstants.AdminRole))
             applicationContext.Roles.AddRoleToUser(admin.Id, adminRole.Id);
