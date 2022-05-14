@@ -7,5 +7,5 @@ public class CorrespondencePreviewModel
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    private List<UserViewModel> Users { get; set; } 
+    public List<UserViewModel> Users { get; set; } 
 }

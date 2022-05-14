@@ -57,13 +57,13 @@ public class UsersService
 
     public UserViewModel Delete(int userId)
     {
-        User deletedUser = _applicationContext.Users.Get(userId);
+        User user = _applicationContext.Users.Get(userId);
         _applicationContext.Users.Delete(userId);
         
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserViewModel>());
         var mapper = new Mapper(mapperConfig);
 
-        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(deletedUser);
+        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         return userViewModel;
     }
 }
