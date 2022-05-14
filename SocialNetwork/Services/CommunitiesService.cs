@@ -162,10 +162,10 @@ public class CommunitiesService
         });
         var mapper = new Mapper(mapperConfig);
 
-        community = mapper.Map<CommunityEditModel, Community>(communityEditModel);
-        _applicationContext.Communities.Update(community);
+        Community updatedCommunity = mapper.Map<CommunityEditModel, Community>(communityEditModel);
+        _applicationContext.Communities.Update(updatedCommunity);
 
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
+        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 

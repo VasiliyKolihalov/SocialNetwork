@@ -25,10 +25,13 @@ public class CorrespondencesRepository : ICorrespondencesRepository
             
             string usersQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
-            
+
+            string adminQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                                        INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
             foreach (var correspondence in correspondences)
             {
                 correspondence.Users = connection.Query<User>(usersQuery, new {Id = correspondence.Id}).ToList();
+                correspondence.Admin = connection.QuerySingle<User>(adminQuery, new {Id = correspondence.Id});
             }
 
             return correspondences;
@@ -48,8 +51,12 @@ public class CorrespondencesRepository : ICorrespondencesRepository
             string usersQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
             
-            correspondence.Users = connection.Query<User>(usersQuery, new {Id = correspondence.Id}).ToList();
+            string adminQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                                        INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
             
+            correspondence.Users = connection.Query<User>(usersQuery, new {Id = correspondence.Id}).ToList();
+            correspondence.Admin = connection.QuerySingle<User>(adminQuery, new {Id = correspondence.Id});
+
             return correspondence;
         }
     }
@@ -66,12 +73,34 @@ public class CorrespondencesRepository : ICorrespondencesRepository
             string usersQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
             
+            string adminQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                                        INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
+            
             foreach (var correspondence in correspondences)
             {
                 correspondence.Users = connection.Query<User>(usersQuery, new {Id = correspondence.Id}).ToList();
+                correspondence.Admin = connection.QuerySingle<User>(adminQuery, new {Id = correspondence.Id});
             }
 
             return correspondences;
+        }
+    }
+
+    public void AddUserToCorrespondence(int userId, int correspondenceId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var usersQuery = "INSERT INTO UsersCorrespondences VALUES (@userId, @correspondenceId)";
+            connection.Query(usersQuery, new {userId, correspondenceId});
+        }
+    }
+
+    public void DeleteUserFromCorrespondence(int userId, int correspondenceId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var usersQuery = "DELETE UsersCorrespondences WHERE UserId = @userId AND CorrespondenceId = @correspondenceId";
+            connection.Query(usersQuery, new {userId, correspondenceId});
         }
     }
 
@@ -80,8 +109,8 @@ public class CorrespondencesRepository : ICorrespondencesRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             var correspondenceQuery =
-                "INSERT INTO Correspondences VALUES (@Name) SELECT @@IDENTITY";
-            int correspondenceId = connection.QuerySingle<int>(correspondenceQuery, item);
+                "INSERT INTO Correspondences VALUES (@Name, @AdminId) SELECT @@IDENTITY";
+            int correspondenceId = connection.QuerySingle<int>(correspondenceQuery, new{Name = item.Name, AdminId = item.Admin.Id});
             item.Id = correspondenceId;
 
             var usersQuery = "INSERT INTO UsersCorrespondences VALUES (@UserId, @CorrespondenceId)";

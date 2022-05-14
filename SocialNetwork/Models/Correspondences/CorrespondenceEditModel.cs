@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SocialNetwork.Models.Communities;
+namespace SocialNetwork.Models.Correspondences;
 
-public class CommunityEditModel
+public class CorrespondenceEditModel
 {
     [Required] public int Id { get; set; }
     [Required] public string Name { get; set; }
-    [Required] public string Description { get; set; }
 }
