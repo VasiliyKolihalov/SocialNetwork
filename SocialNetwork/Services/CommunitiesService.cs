@@ -10,9 +10,9 @@ namespace SocialNetwork.Services;
 
 public class CommunitiesService
 {
-    private readonly ApplicationContext _applicationContext;
+    private readonly IApplicationContext _applicationContext;
 
-    public CommunitiesService(ApplicationContext applicationContext)
+    public CommunitiesService(IApplicationContext applicationContext)
     {
         _applicationContext = applicationContext;
     }
@@ -32,8 +32,6 @@ public class CommunitiesService
 
     public IEnumerable<CommunityPreviewModel> GetFollowed(int userId)
     {
-        _applicationContext.Users.Get(userId);
-
         IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
 
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
@@ -47,8 +45,6 @@ public class CommunitiesService
 
     public IEnumerable<CommunityPreviewModel> GetManaged(int userId)
     {
-        _applicationContext.Users.Get(userId);
-
         IEnumerable<Community> communities = _applicationContext.Communities.GetManagedCommunity(userId);
 
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
@@ -73,21 +69,20 @@ public class CommunitiesService
         });
         var mapper = new Mapper(mapperConfig);
 
-        IEnumerable<PostViewModel> posts = mapper.Map<IEnumerable<Post>, IEnumerable<PostViewModel>>(_applicationContext.Posts.GetPostsFromCommunity(communityId));
-        foreach (var post in posts)
+        IEnumerable<PostViewModel> postViewModels = mapper.Map<IEnumerable<Post>, IEnumerable<PostViewModel>>(_applicationContext.Posts.GetPostsFromCommunity(communityId));
+        foreach (var postViewModel in postViewModels)
         {
-            post.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+            postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
         }
         
         CommunityViewModel communityViewModel = mapper.Map<Community, CommunityViewModel>(community);
-        communityViewModel.Posts = posts.ToList();
+        communityViewModel.Posts = postViewModels.ToList();
 
         return communityViewModel;
     }
 
     public CommunityPreviewModel Subscribe(int communityId, int userId)
     {
-        User user = _applicationContext.Users.Get(userId);
         Community community = _applicationContext.Communities.Get(communityId);
 
         if (community.Users.Any(x => x.Id == userId))
@@ -101,14 +96,14 @@ public class CommunitiesService
             cfg.CreateMap<Community, CommunityPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
-        
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
+
+        Community updatedCommunity = _applicationContext.Communities.Get(communityId);
+        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 
     public CommunityPreviewModel Unsubscribe(int communityId, int userId)
     {
-        User user = _applicationContext.Users.Get(userId);
         Community community = _applicationContext.Communities.Get(communityId);
         
         if (!community.Users.Any(x => x.Id == userId))
@@ -123,7 +118,8 @@ public class CommunitiesService
         });
         var mapper = new Mapper(mapperConfig);
         
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
+        Community updatedCommunity = _applicationContext.Communities.Get(communityId);
+        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 
@@ -150,7 +146,6 @@ public class CommunitiesService
     public CommunityPreviewModel Edit(CommunityEditModel communityEditModel, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityEditModel.Id);
-        _applicationContext.Users.Get(userId);
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
@@ -172,7 +167,6 @@ public class CommunitiesService
     public CommunityPreviewModel Delete(int communityId, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityId); 
-        _applicationContext.Users.Get(userId);
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
@@ -186,10 +180,9 @@ public class CommunitiesService
         return communityPreviewModel;
     }
 
-    public CommunityPreviewModel AddPost(PostAddModel postAddModel, int communityId, int userId)
+    public PostViewModel AddPost(PostAddModel postAddModel, int communityId, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityId);
-        _applicationContext.Users.Get(userId);
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
@@ -197,7 +190,8 @@ public class CommunitiesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<PostAddModel, Post>();
-            
+
+            cfg.CreateMap<Post, PostViewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
@@ -206,15 +200,16 @@ public class CommunitiesService
         post.CommunityId = communityId;
         
         _applicationContext.Posts.Add(post);
-        
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
-        return communityPreviewModel;
+
+        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        return postViewModel;
     }
 
-    public CommunityPreviewModel EditPost(PostEditModel postEditModel, int communityId, int userId)
+    public PostViewModel EditPost(PostEditModel postEditModel, int userId)
     {
-        Community community = _applicationContext.Communities.Get(communityId);
-        _applicationContext.Users.Get(userId);
+        Post post = _applicationContext.Posts.Get(postEditModel.Id);
+        Community community = _applicationContext.Communities.Get(post.CommunityId);
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
@@ -223,37 +218,40 @@ public class CommunitiesService
         {
             cfg.CreateMap<PostEditModel, Post>();
             
+            cfg.CreateMap<Post, PostViewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
         
-        Post post = mapper.Map<PostEditModel, Post>(postEditModel);
-        _applicationContext.Posts.Update(post);
+        Post updatedPost = mapper.Map<PostEditModel, Post>(postEditModel);
+        _applicationContext.Posts.Update(updatedPost);
         
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
-        return communityPreviewModel;
+        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(updatedPost);
+        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        return postViewModel;
     }
 
-    public CommunityPreviewModel DeletePost(int postId, int communityId, int userId)
+    public PostViewModel DeletePost(int postId, int userId)
     {
-        Community community = _applicationContext.Communities.Get(communityId);
-         _applicationContext.Users.Get(userId);
+        Post post = _applicationContext.Posts.Get(postId);
+        Community community = _applicationContext.Communities.Get(post.CommunityId);
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
 
-        _applicationContext.Posts.Get(postId);
         _applicationContext.Posts.Delete(postId);
 
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<PostAddModel, Post>();
             
+            cfg.CreateMap<Post, PostViewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
         
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
-        return communityPreviewModel;
+        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        return postViewModel;
     }
 }

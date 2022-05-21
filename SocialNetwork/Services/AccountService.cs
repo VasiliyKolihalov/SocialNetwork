@@ -13,10 +13,10 @@ namespace SocialNetwork.Services;
 
 public class AccountService
 {
-    private readonly ApplicationContext _applicationContext;
+    private readonly IApplicationContext _applicationContext;
     private readonly IOptions<JwtAuthenticationOptions> _jwtAuthOptions;
 
-    public AccountService(ApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions)
+    public AccountService(IApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions)
     {
         _applicationContext = applicationContext;
         _jwtAuthOptions = jwtAuthOptions;

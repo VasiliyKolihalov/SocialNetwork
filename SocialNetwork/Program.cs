@@ -21,7 +21,7 @@ builder.Configuration.AddJsonFile("admindata.json");
 #region Services
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddScoped<ApplicationContext>(_ => new ApplicationContext(connection));
+builder.Services.AddScoped<IApplicationContext>(_ => new ApplicationContext(connection));
 
 var jwtAuthOptions = builder.Configuration.GetSection("JwtAuthenticationData");
 builder.Services.Configure<JwtAuthenticationOptions>(jwtAuthOptions);
@@ -70,12 +70,12 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
 
-InitializeRolesAndAdministrator(app.Services.CreateScope().ServiceProvider.GetRequiredService<ApplicationContext>(), app.Configuration);
+InitializeRolesAndAdministrator(app.Services.CreateScope().ServiceProvider.GetRequiredService<IApplicationContext>(), app.Configuration);
 
 app.Run();
 
 
-static void InitializeRolesAndAdministrator(ApplicationContext applicationContext, IConfiguration configuration)
+static void InitializeRolesAndAdministrator(IApplicationContext applicationContext, IConfiguration configuration)
 {
     var adminData = configuration.GetSection("AdminData");
     

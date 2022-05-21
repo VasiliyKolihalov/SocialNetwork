@@ -50,7 +50,7 @@ public class CommunitiesController : ControllerBase
 
     [Route("{id}")]
     [HttpGet]
-    public ActionResult<CommunityViewModel> GetWithMessage(int id)
+    public ActionResult<CommunityViewModel> GetWithPosts(int id)
     {
         CommunityViewModel communityViewModel = _communitiesService.GetWithPosts(id);
         return Ok(communityViewModel);
@@ -95,25 +95,25 @@ public class CommunitiesController : ControllerBase
 
     [Route("{communityId}/AddPost")]
     [HttpPut]
-    public ActionResult<CommunityPreviewModel> AddPost(PostAddModel postAddModel, int communityId)
+    public ActionResult<PostViewModel> AddPost(PostAddModel postAddModel, int communityId)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.AddPost(postAddModel, communityId, GetUserId());
-        return Ok(communityPreviewModel);
+        PostViewModel postViewModel = _communitiesService.AddPost(postAddModel, communityId, GetUserId());
+        return Ok(postViewModel);
     }
     
-    [Route("{communityId}/EditPost")]
+    [Route("EditPost")]
     [HttpPut]
-    public ActionResult<CommunityPreviewModel> EditPost(PostEditModel postEditModel, int communityId)
+    public ActionResult<PostViewModel> EditPost(PostEditModel postEditModel)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.EditPost(postEditModel, communityId, GetUserId());
-        return Ok(communityPreviewModel);
+        PostViewModel postViewModel = _communitiesService.EditPost(postEditModel, GetUserId());
+        return Ok(postViewModel);
     }
     
-    [Route("{communityId}/DeletePost/{postId}")]
+    [Route("DeletePost/{postId}")]
     [HttpPut]
-    public ActionResult<CommunityPreviewModel> DeletePost(int communityId, int postId)
+    public ActionResult<PostViewModel> DeletePost(int communityId, int postId)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.DeletePost(postId, communityId, GetUserId());
-        return Ok(communityPreviewModel);
+        PostViewModel postViewModel = _communitiesService.DeletePost(postId, GetUserId());
+        return Ok(postViewModel);
     }
 }

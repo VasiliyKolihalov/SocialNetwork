@@ -94,38 +94,36 @@ public class CorrespondencesController : ControllerBase
     
     [Route("{correspondenceId}/SendMessage")]
     [HttpPut]
-    public ActionResult<CorrespondencePreviewModel> SendMessage(MessageAddModel messageAddModel, int correspondenceId)
+    public ActionResult<MessageViewModel> SendMessage(MessageAddModel messageAddModel, int correspondenceId)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
         
-        CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.SendMessage(messageAddModel, correspondenceId, GetUserId());
+        MessageViewModel messageViewModel = _correspondencesService.SendMessage(messageAddModel, correspondenceId, GetUserId());
         
-        return Ok(correspondencePreviewModel);
+        return Ok(messageViewModel);
     }
 
-    [Route("{correspondenceId}/EditMessage")]
+    [Route("EditMessage")]
     [HttpPut]
-    public ActionResult<CorrespondencePreviewModel> EditMessage(MessageEditModel messageEditModel, int correspondenceId)
+    public ActionResult<MessageViewModel> EditMessage(MessageEditModel messageEditModel)
     {
         if (!ModelState.IsValid)
             return BadRequest();
 
-        CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.EditMessage(messageEditModel, GetUserId());
+        MessageViewModel messageViewModel = _correspondencesService.EditMessage(messageEditModel, GetUserId());
 
-        return Ok(correspondencePreviewModel);
+        return Ok(messageViewModel);
     }
 
-    [Route("{correspondenceId}/DeleteMessage/{messageId}")]
+    [Route("DeleteMessage/{messageId}")]
     [HttpPut]
-    public ActionResult<CorrespondencePreviewModel> DeleteMessage(int correspondenceId, long messageId)
+    public ActionResult<MessageViewModel> DeleteMessage(long messageId)
     {
         if (!ModelState.IsValid)
             return BadRequest();
         
-        CorrespondencePreviewModel correspondencePreviewModel = _correspondencesService.DeleteMessage(messageId, correspondenceId, GetUserId());
-        return Ok(correspondencePreviewModel);
+        MessageViewModel messageViewModel = _correspondencesService.DeleteMessage(messageId, GetUserId());
+        return Ok(messageViewModel);
     }
 }

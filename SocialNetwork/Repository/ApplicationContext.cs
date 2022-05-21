@@ -1,13 +1,13 @@
 ﻿namespace SocialNetwork.Repository;
 
-public class ApplicationContext
+public class ApplicationContext : IApplicationContext
 {
-    public UsersRepository Users { get; }
-    public RolesRepository Roles { get; }
-    public CorrespondencesRepository Correspondences { get; }
-    public MessagesRepository Messages { get; }
-    public CommunitiesRepository Communities { get; }
-    public PostsRepository Posts { get; }
+    public IUsersRepository Users { get; }
+    public IRolesRepository Roles { get; }
+    public ICorrespondencesRepository Correspondences { get; }
+    public IMessagesRepository Messages { get; }
+    public ICommunitiesRepository Communities { get; }
+    public IPostsRepository Posts { get; }
 
     public ApplicationContext(string connectionString)
     {
