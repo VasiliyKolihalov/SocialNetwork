@@ -7,9 +7,9 @@ namespace SocialNetwork.Services;
 
 public class UsersService
 {
-    private readonly ApplicationContext _applicationContext;
+    private readonly IApplicationContext _applicationContext;
 
-    public UsersService(ApplicationContext applicationContext)
+    public UsersService(IApplicationContext applicationContext)
     {
         _applicationContext = applicationContext;
     }

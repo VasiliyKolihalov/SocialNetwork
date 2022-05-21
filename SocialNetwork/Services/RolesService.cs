@@ -7,9 +7,9 @@ namespace SocialNetwork.Services;
 
 public class RolesService
 {
-    private readonly ApplicationContext _applicationContext;
+    private readonly IApplicationContext _applicationContext;
 
-    public RolesService(ApplicationContext applicationContext)
+    public RolesService(IApplicationContext applicationContext)
     {
         _applicationContext = applicationContext;
     }
