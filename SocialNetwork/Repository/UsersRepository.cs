@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
 using SocialNetwork.Exceptions;
+using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Users;
 
 
@@ -38,6 +39,37 @@ public class UsersRepository : IUsersRepository
         }
     }
 
+    public IEnumerable<User> GetUserFriends(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = @"SELECT * FROM Users WHERE Id IN 
+            ((SELECT SecondUser AS Id FROM UsersFriends WHERE FirstUser = @userId) UNION (SELECT FirstUser AS Id FROM UsersFriends WHERE SecondUser = @userId))";
+
+            IEnumerable<User> users = connection.Query<User>(sqlQuery, new {userId});
+            return users;
+        }
+        
+    }
+
+    public void AddUserToFriends(int userId, int friendId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "INSERT INTO UsersFriends VALUES(@userId, @friendId)";
+            connection.Query(sqlQuery, new {userId, friendId});
+        }
+    }
+    
+    public void DeleteUserFromFriend(int userId, int friendId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "DELETE UsersFriends WHERE FirstUser = @userId OR SecondUser = @userId AND FirstUser = @friendId OR SecondUser = @friendId";
+            connection.Query(sqlQuery, new {userId, friendId});
+        }
+    }
+
     public User GetFromEmail(string email)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -51,7 +83,7 @@ public class UsersRepository : IUsersRepository
             return user;
         }
     }
-
+    
     public void Add(User item)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))

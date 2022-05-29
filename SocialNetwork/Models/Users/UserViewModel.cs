@@ -1,4 +1,6 @@
-﻿namespace SocialNetwork.Models.Users;
+﻿using SocialNetwork.Models.Communities;
+
+namespace SocialNetwork.Models.Users;
 
 public class UserViewModel
 {
@@ -6,4 +8,7 @@ public class UserViewModel
     public string FirstName { get; set; }
     public string SecondName { get; set; }
     public string Email { get; set; }
+    
+    public List<CommunityPreviewModel> Communities { get; set; }
+    public List<UserPreviewModel> Friends { get; set; }
 }

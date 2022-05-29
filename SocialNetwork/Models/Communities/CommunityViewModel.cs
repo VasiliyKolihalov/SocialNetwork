@@ -9,6 +9,6 @@ public class CommunityViewModel
     public string Name { get; set; }
     public string Description { get; set; }
     public List<PostViewModel> Posts { get; set; }
-    public UserViewModel Author { get; set; }
-    public List<UserViewModel> Users { get; set; }
+    public UserPreviewModel Author { get; set; }
+    public List<UserPreviewModel> Users { get; set; }
 }

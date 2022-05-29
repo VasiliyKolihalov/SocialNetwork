@@ -21,7 +21,7 @@ public class CorrespondencesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -44,7 +44,7 @@ public class CorrespondencesService
         {
             cfg.CreateMap<Correspondence, CorrespondenceViewModel>();
             cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -79,7 +79,7 @@ public class CorrespondencesService
             cfg.CreateMap<MessageAddModel, Message>();
 
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -115,7 +115,7 @@ public class CorrespondencesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -141,7 +141,7 @@ public class CorrespondencesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -163,7 +163,7 @@ public class CorrespondencesService
             cfg.CreateMap<CorrespondenceEditModel, Correspondence>();
 
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -188,7 +188,7 @@ public class CorrespondencesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -210,7 +210,7 @@ public class CorrespondencesService
             cfg.CreateMap<MessageAddModel, Message>();
 
             cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -235,7 +235,7 @@ public class CorrespondencesService
             cfg.CreateMap<MessageEditModel, Message>();
 
             cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
@@ -259,7 +259,7 @@ public class CorrespondencesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 

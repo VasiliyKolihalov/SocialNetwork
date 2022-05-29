@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models;
+using SocialNetwork.Models.Communities;
+using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Repository;
@@ -26,11 +28,56 @@ public class AccountService
     {
         User user = _applicationContext.Users.Get(userId);
         
-        var mappingConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserViewModel>());
-        var mapper = new Mapper(mappingConfig);
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<User, UserViewModel>();
+            
+            cfg.CreateMap<User, UserPreviewModel>();
+            cfg.CreateMap<Community, CommunityPreviewModel>();
+
+        });
+        var mapper = new Mapper(mapperConfig);
 
         UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
+        IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
+        IEnumerable<User> friends = _applicationContext.Users.GetUserFriends(userId);
+        
+        userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
+        userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
         return userViewModel;
+    }
+
+    public IEnumerable<FriendsRequestViewModel> GetFriendRequests(int userId)
+    {
+        IEnumerable<FriendRequest> friendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(userId);
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<FriendRequest, FriendsRequestViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+
+        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels =
+            mapper.Map<IEnumerable<FriendRequest>, IEnumerable<FriendsRequestViewModel>>(friendRequests);
+        return friendsRequestViewModels;
+    }
+
+    public UserPreviewModel ConfirmFriendRequest(int friendRequestId, int userId)
+    {
+        FriendRequest friendRequest = _applicationContext.FriendRequests.Get(friendRequestId);
+        if (friendRequest.RecipientId != userId)
+            throw new NotFoundException("Friend request not found");
+        
+        _applicationContext.Users.AddUserToFriends(userId, friendRequest.Sender.Id);
+        _applicationContext.FriendRequests.Delete(friendRequestId);
+        
+        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
+        var mapper = new Mapper(mapperConfig);
+        
+        User userFriend = _applicationContext.Users.Get(friendRequest.Sender.Id);
+        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(userFriend);
+        return userPreviewModel;
     }
 
     public string Register(RegisterUserModel registerUserModel)
