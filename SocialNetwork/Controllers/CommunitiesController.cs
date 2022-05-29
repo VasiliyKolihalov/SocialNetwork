@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SocialNetwork.Extensions;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Posts;
 using SocialNetwork.Services;
@@ -19,12 +20,6 @@ public class CommunitiesController : ControllerBase
         _communitiesService = communitiesService;
     }
 
-    private int GetUserId()
-    {
-        int userId = Convert.ToInt32(User.Claims.Single(x => x.Type == ClaimTypes.NameIdentifier).Value);
-        return userId;
-    }
-    
     [HttpGet]
     public ActionResult<IEnumerable<CommunityPreviewModel>> GetAll()
     {
@@ -36,7 +31,7 @@ public class CommunitiesController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<CommunityPreviewModel>> GetFollowed()
     {
-        IEnumerable<CommunityPreviewModel> communityPreviewModels = _communitiesService.GetFollowed(GetUserId());
+        IEnumerable<CommunityPreviewModel> communityPreviewModels = _communitiesService.GetFollowed(this.GetUserIdFromClaims());
         return Ok(communityPreviewModels);
     }
 
@@ -44,7 +39,7 @@ public class CommunitiesController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<CommunityPreviewModel>> GetManaged()
     {
-        IEnumerable<CommunityPreviewModel> communityPreviewModels = _communitiesService.GetManaged(GetUserId());
+        IEnumerable<CommunityPreviewModel> communityPreviewModels = _communitiesService.GetManaged(this.GetUserIdFromClaims());
         return Ok(communityPreviewModels);
     }
 
@@ -60,7 +55,7 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<CommunityPreviewModel> Subscribe(int communityId)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.Subscribe(communityId, GetUserId());
+        CommunityPreviewModel communityPreviewModel = _communitiesService.Subscribe(communityId, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
 
@@ -68,28 +63,28 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<CommunityPreviewModel> Unsubscribe(int communityId)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.Unsubscribe(communityId, GetUserId());
+        CommunityPreviewModel communityPreviewModel = _communitiesService.Unsubscribe(communityId, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
 
     [HttpPost]
     public ActionResult<CommunityPreviewModel> Post(CommunityAddModel communityAddModel)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.Create(communityAddModel, GetUserId());
+        CommunityPreviewModel communityPreviewModel = _communitiesService.Create(communityAddModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
     
     [HttpPut]
     public ActionResult<CommunityPreviewModel> Put(CommunityEditModel communityEditModel)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.Edit(communityEditModel, GetUserId());
+        CommunityPreviewModel communityPreviewModel = _communitiesService.Edit(communityEditModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
     
     [HttpDelete("{communityId}")]
     public ActionResult<CommunityPreviewModel> Delete(int communityId)
     {
-        CommunityPreviewModel communityPreviewModel = _communitiesService.Delete(communityId, GetUserId());
+        CommunityPreviewModel communityPreviewModel = _communitiesService.Delete(communityId, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
 
@@ -97,7 +92,7 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> AddPost(PostAddModel postAddModel, int communityId)
     {
-        PostViewModel postViewModel = _communitiesService.AddPost(postAddModel, communityId, GetUserId());
+        PostViewModel postViewModel = _communitiesService.AddPost(postAddModel, communityId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
     
@@ -105,7 +100,7 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> EditPost(PostEditModel postEditModel)
     {
-        PostViewModel postViewModel = _communitiesService.EditPost(postEditModel, GetUserId());
+        PostViewModel postViewModel = _communitiesService.EditPost(postEditModel, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
     
@@ -113,7 +108,7 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> DeletePost(int communityId, int postId)
     {
-        PostViewModel postViewModel = _communitiesService.DeletePost(postId, GetUserId());
+        PostViewModel postViewModel = _communitiesService.DeletePost(postId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
 }

@@ -8,4 +8,6 @@ public interface IApplicationContext
     public IMessagesRepository Messages { get; }
     public ICommunitiesRepository Communities { get; }
     public IPostsRepository Posts { get; }
+
+    public IFriendRequestsRepository FriendRequests { get; }
 }

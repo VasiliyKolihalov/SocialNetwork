@@ -63,7 +63,7 @@ public class CommunitiesService
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Community, CommunityViewModel>();
-            cfg.CreateMap<User, UserViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
             cfg.CreateMap<Post, PostViewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
         });

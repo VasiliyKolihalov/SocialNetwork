@@ -8,6 +8,7 @@ public class ApplicationContext : IApplicationContext
     public IMessagesRepository Messages { get; }
     public ICommunitiesRepository Communities { get; }
     public IPostsRepository Posts { get; }
+    public IFriendRequestsRepository FriendRequests { get; }
 
     public ApplicationContext(string connectionString)
     {
@@ -17,5 +18,6 @@ public class ApplicationContext : IApplicationContext
         Messages = new MessagesRepository(connectionString);
         Communities = new CommunitiesRepository(connectionString);
         Posts = new PostsRepository(connectionString);
+        FriendRequests = new FriendRequestsRepository(connectionString);
     }
 }

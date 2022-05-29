@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Services;
+using SocialNetwork.Extensions;
 
 namespace SocialNetwork.Controllers;
 
@@ -16,19 +18,31 @@ public class AccountController : ControllerBase
     {
         _accountService = accountService;
     }
-    
-    private int GetUserId()
-    {
-        int userId = Convert.ToInt32(User.Claims.Single(x => x.Type == ClaimTypes.NameIdentifier).Value);
-        return userId;
-    } 
-    
+
     [Authorize]
     [HttpGet]
     public ActionResult<UserViewModel> Get()
     {
-        UserViewModel userViewModel = _accountService.Get(GetUserId());
+        UserViewModel userViewModel = _accountService.Get(this.GetUserIdFromClaims());
         return Ok(userViewModel);
+    }
+    
+    [Authorize]
+    [Route("GetFriendRequests")]
+    [HttpGet]
+    public ActionResult<IEnumerable<FriendsRequestViewModel>> GetFriendRequests()
+    {
+        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels = _accountService.GetFriendRequests(this.GetUserIdFromClaims());
+        return Ok(friendsRequestViewModels);
+    }
+
+    [Authorize]
+    [Route("ConfirmFriendRequest/{friendRequestId}")]
+    [HttpPost]
+    public ActionResult<UserPreviewModel> ConfirmFriendRequest(int friendRequestId)
+    {
+        UserPreviewModel userPreviewModel = _accountService.ConfirmFriendRequest(friendRequestId, this.GetUserIdFromClaims());
+        return Ok(userPreviewModel);
     }
 
     [Route("Register")]

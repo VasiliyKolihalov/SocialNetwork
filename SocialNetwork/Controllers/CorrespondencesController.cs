@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SocialNetwork.Extensions;
 using SocialNetwork.Models.Correspondences;
 using SocialNetwork.Models.Messages;
 using SocialNetwork.Services;
@@ -19,23 +20,17 @@ public class CorrespondencesController : ControllerBase
         _correspondencesService = correspondencesService;
     }
 
-    private int GetUserId()
-    {
-        int userId = Convert.ToInt32(User.Claims.Single(x => x.Type == ClaimTypes.NameIdentifier).Value);
-        return userId;
-    }
-
     [HttpGet]
     public ActionResult<IEnumerable<CorrespondencePreviewModel>> GetAll()
     {
-        IEnumerable<CorrespondencePreviewModel> correspondencePreviewModel = _correspondencesService.GetAll(GetUserId());
+        IEnumerable<CorrespondencePreviewModel> correspondencePreviewModel = _correspondencesService.GetAll(this.GetUserIdFromClaims());
         return Ok(correspondencePreviewModel);
     }
 
     [HttpGet("{id}")]
     public ActionResult<CorrespondenceViewModel> GetWithMessages(int id)
     {
-        CorrespondenceViewModel correspondenceViewModel = _correspondencesService.GetWithMessages(id, GetUserId());
+        CorrespondenceViewModel correspondenceViewModel = _correspondencesService.GetWithMessages(id, this.GetUserIdFromClaims());
         return Ok(correspondenceViewModel);
     }
 
@@ -46,7 +41,7 @@ public class CorrespondencesController : ControllerBase
             return BadRequest(ModelState);
         
         CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.StartCorrespondence(correspondenceAddModel, GetUserId());
+            _correspondencesService.StartCorrespondence(correspondenceAddModel, this.GetUserIdFromClaims());
 
         return Ok(correspondencePreviewModel);
     }
@@ -58,7 +53,7 @@ public class CorrespondencesController : ControllerBase
             return BadRequest(ModelState);
         
         CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.Edit(correspondenceEditModel, GetUserId());
+            _correspondencesService.Edit(correspondenceEditModel, this.GetUserIdFromClaims());
 
         return Ok(correspondencePreviewModel);
     }
@@ -67,27 +62,27 @@ public class CorrespondencesController : ControllerBase
     public ActionResult<CorrespondencePreviewModel> Delete(int correspondenceId)
     {
         CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.Delete(correspondenceId, GetUserId());
+            _correspondencesService.Delete(correspondenceId, this.GetUserIdFromClaims());
         
         return Ok(correspondencePreviewModel);
     }
 
-    [Route("{correspondenceId}/addUser/{userId}")]
+    [Route("{correspondenceId}/AddUser/{userId}")]
     [HttpPut]
     public ActionResult<CorrespondencePreviewModel> AddUserToCorrespondence(int correspondenceId, int userId)
     {
         CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.AddUserToCorrespondence(correspondenceId, userId, GetUserId());
+            _correspondencesService.AddUserToCorrespondence(correspondenceId, userId, this.GetUserIdFromClaims());
 
         return Ok(correspondencePreviewModel);
     }
     
-    [Route("{correspondenceId}/deleteUser/{userId}")]
+    [Route("{correspondenceId}/DeleteUser/{userId}")]
     [HttpPut]
     public ActionResult<CorrespondencePreviewModel> DeleteUserFromCorrespondence(int correspondenceId, int userId)
     {
         CorrespondencePreviewModel correspondencePreviewModel =
-            _correspondencesService.DeleteUserFromCorrespondence(correspondenceId, userId, GetUserId());
+            _correspondencesService.DeleteUserFromCorrespondence(correspondenceId, userId, this.GetUserIdFromClaims());
 
         return Ok(correspondencePreviewModel);
     }
@@ -99,7 +94,7 @@ public class CorrespondencesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
         
-        MessageViewModel messageViewModel = _correspondencesService.SendMessage(messageAddModel, correspondenceId, GetUserId());
+        MessageViewModel messageViewModel = _correspondencesService.SendMessage(messageAddModel, correspondenceId, this.GetUserIdFromClaims());
         
         return Ok(messageViewModel);
     }
@@ -111,7 +106,7 @@ public class CorrespondencesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
 
-        MessageViewModel messageViewModel = _correspondencesService.EditMessage(messageEditModel, GetUserId());
+        MessageViewModel messageViewModel = _correspondencesService.EditMessage(messageEditModel, this.GetUserIdFromClaims());
 
         return Ok(messageViewModel);
     }
@@ -123,7 +118,7 @@ public class CorrespondencesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest();
         
-        MessageViewModel messageViewModel = _correspondencesService.DeleteMessage(messageId, GetUserId());
+        MessageViewModel messageViewModel = _correspondencesService.DeleteMessage(messageId, this.GetUserIdFromClaims());
         return Ok(messageViewModel);
     }
 }
