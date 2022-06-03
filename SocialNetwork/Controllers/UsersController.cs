@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Constants;
 using SocialNetwork.Extensions;
 using SocialNetwork.Models.FriendsRequests;
+using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Services;
 
@@ -33,6 +34,14 @@ public class UsersController : ControllerBase
     {
         UserViewModel userViewModel = _usersService.Get(userId);
         return Ok(userViewModel);
+    }
+
+    [Route("{userId}/GetAvatar")]
+    [HttpGet]
+    public ActionResult<ImageViewModel> GetUserAvatar(int userId)
+    {
+        ImageViewModel imageViewModel = _usersService.GetUserAvatar(userId);
+        return Ok(imageViewModel);
     }
 
     [Authorize]

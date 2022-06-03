@@ -92,6 +92,7 @@ static void InitializeRolesAndAdministrator(IApplicationContext applicationConte
             PasswordHash = PasswordHasher.HashPassword(adminData["Password"])
         };
         applicationContext.Users.Add(admin);
+        applicationContext.Images.SetDefaultValueForUserAvatar(admin.Id);
     }
 
     Role adminRole;

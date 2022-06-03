@@ -35,6 +35,9 @@ public class RolesController : ControllerBase
     [HttpPost]
     public ActionResult<RoleViewModel> Post(RoleAddModel roleAddModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         RoleViewModel roleViewModel = _rolesService.Create(roleAddModel);
         return Ok(roleViewModel);
     }
@@ -42,6 +45,9 @@ public class RolesController : ControllerBase
     [HttpPut]
     public ActionResult<RoleViewModel> Put(RoleUpdateModel roleUpdateModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         RoleViewModel roleViewModel = _rolesService.Update(roleUpdateModel);
         return Ok(roleViewModel);
     }

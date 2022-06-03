@@ -70,6 +70,9 @@ public class CommunitiesController : ControllerBase
     [HttpPost]
     public ActionResult<CommunityPreviewModel> Post(CommunityAddModel communityAddModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         CommunityPreviewModel communityPreviewModel = _communitiesService.Create(communityAddModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
@@ -77,6 +80,9 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<CommunityPreviewModel> Put(CommunityEditModel communityEditModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         CommunityPreviewModel communityPreviewModel = _communitiesService.Edit(communityEditModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
@@ -92,6 +98,9 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> AddPost(PostAddModel postAddModel, int communityId)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         PostViewModel postViewModel = _communitiesService.AddPost(postAddModel, communityId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
@@ -100,6 +109,9 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> EditPost(PostEditModel postEditModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         PostViewModel postViewModel = _communitiesService.EditPost(postEditModel, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }

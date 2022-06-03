@@ -2,6 +2,7 @@
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.FriendsRequests;
+using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Repository;
 
@@ -20,36 +21,57 @@ public class UsersService
     {
         IEnumerable<User> users = _applicationContext.Users.GetAll();
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-            cfg.CreateMap<User, UserPreviewModel>());
+        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
         var mapper = new Mapper(mapperConfig);
 
-        IEnumerable<UserPreviewModel> userViewModels =
-            mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
-        return userViewModels;
+        IEnumerable<UserPreviewModel> userPreviewModels = mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
+        
+        return userPreviewModels;
     }
 
     public UserViewModel Get(int userId)
     {
         User user = _applicationContext.Users.Get(userId);
-        
+
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<User, UserViewModel>();
-            
+
             cfg.CreateMap<User, UserPreviewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
-
+            cfg.CreateMap<Image?, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
         });
         var mapper = new Mapper(mapperConfig);
 
-        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
         IEnumerable<User> friends = _applicationContext.Users.GetUserFriends(userId);
-        
+        Image? avatar = _applicationContext.Images.GetUserAvatar(userId);
+        IEnumerable<Image> photos = _applicationContext.Images.GetUserPhotos(userId);
+
+        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
         userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
+        userViewModel.Avatar = mapper.Map<Image?, ImageViewModel>(avatar);
+        userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
         return userViewModel;
+    }
+    
+    public ImageViewModel GetUserAvatar(int userId)
+    {
+        _applicationContext.Users.Get(userId);
+
+        Image? image = _applicationContext.Images.GetUserAvatar(userId);
+        
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Image?, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
+        });
+        var mapper = new Mapper(mapperConfig);
+
+        ImageViewModel imageViewModel = mapper.Map<Image?, ImageViewModel>(image);
+        return imageViewModel;
     }
 
     public UserPreviewModel SendFriendRequest(FriendRequestAddModel friendRequestAddModel, int senderId)
@@ -59,11 +81,14 @@ public class UsersService
 
         User recipientUser = _applicationContext.Users.Get(friendRequestAddModel.RecipientId);
 
-        IEnumerable<FriendRequest> userRecipientFriendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(friendRequestAddModel.RecipientId);
-        if (userRecipientFriendRequests.Any(x => x.RecipientId == friendRequestAddModel.RecipientId && x.Sender.Id == senderId))
+        IEnumerable<FriendRequest> userRecipientFriendRequests =
+            _applicationContext.FriendRequests.GetUserFriendsRequests(friendRequestAddModel.RecipientId);
+        if (userRecipientFriendRequests.Any(x =>
+                x.RecipientId == friendRequestAddModel.RecipientId && x.Sender.Id == senderId))
             throw new BadRequestException("Request has already been sent");
 
-        IEnumerable<User> userRecipientFriends = _applicationContext.Users.GetUserFriends(friendRequestAddModel.RecipientId);
+        IEnumerable<User> userRecipientFriends =
+            _applicationContext.Users.GetUserFriends(friendRequestAddModel.RecipientId);
         if (userRecipientFriends.Any(x => x.Id == senderId))
             throw new BadRequestException("User is already friends");
 
@@ -89,15 +114,15 @@ public class UsersService
     {
         if (userId == senderId)
             throw new BadRequestException("Sender and recipient id are same");
-        
+
         User userFriend = _applicationContext.Users.Get(userId);
 
         IEnumerable<User> userFriends = _applicationContext.Users.GetUserFriends(userId);
         if (!userFriends.Any(x => x.Id == senderId))
             throw new BadRequestException("User is not in friends");
-        
+
         _applicationContext.Users.DeleteUserFromFriend(senderId, userId);
-        
+
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
         var mapper = new Mapper(mapperConfig);
 

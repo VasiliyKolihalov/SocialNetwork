@@ -10,4 +10,6 @@ public interface IApplicationContext
     public IPostsRepository Posts { get; }
 
     public IFriendRequestsRepository FriendRequests { get; }
+    public IImagesRepository Images { get; }
+
 }
