@@ -35,14 +35,20 @@ public class RolesController : ControllerBase
     [HttpPost]
     public ActionResult<RoleViewModel> Post(RoleAddModel roleAddModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         RoleViewModel roleViewModel = _rolesService.Create(roleAddModel);
         return Ok(roleViewModel);
     }
     
     [HttpPut]
-    public ActionResult<RoleViewModel> Put(RoleUpdateModel roleUpdateModel)
+    public ActionResult<RoleViewModel> Put(RoleEditModel roleEditModel)
     {
-        RoleViewModel roleViewModel = _rolesService.Update(roleUpdateModel);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
+        RoleViewModel roleViewModel = _rolesService.Update(roleEditModel);
         return Ok(roleViewModel);
     }
     

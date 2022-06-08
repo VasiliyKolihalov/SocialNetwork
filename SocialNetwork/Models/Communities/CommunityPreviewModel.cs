@@ -1,4 +1,6 @@
-﻿namespace SocialNetwork.Models.Communities;
+﻿using SocialNetwork.Models.Images;
+
+namespace SocialNetwork.Models.Communities;
 
 public class CommunityPreviewModel
 {

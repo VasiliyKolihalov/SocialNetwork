@@ -5,6 +5,7 @@ using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Services;
 using SocialNetwork.Extensions;
+using SocialNetwork.Models.Images;
 
 namespace SocialNetwork.Controllers;
 
@@ -43,6 +44,36 @@ public class AccountController : ControllerBase
     {
         UserPreviewModel userPreviewModel = _accountService.ConfirmFriendRequest(friendRequestId, this.GetUserIdFromClaims());
         return Ok(userPreviewModel);
+    }
+
+    [Authorize]
+    [Route("AddPhotoToAccount")]
+    [HttpPost]
+    public ActionResult<ImageViewModel> AddPhotoToAccount(ImageAddModel imageAddModel)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        ImageViewModel imageViewModel = _accountService.AddPhotoToAccount(imageAddModel, this.GetUserIdFromClaims());
+        return Ok(imageViewModel);
+    }
+
+    [Authorize]
+    [Route("DeletePhotoFromAccount/{imageId}")]
+    [HttpDelete]
+    public ActionResult<ImageViewModel> DeletePhotoFromAccount(int imageId)
+    {
+        ImageViewModel imageViewModel = _accountService.DeletePhotoFromAccount(imageId, this.GetUserIdFromClaims());
+        return Ok(imageViewModel);
+    }
+
+    [Authorize]
+    [Route("ChangeAvatar/{imageId}")]
+    [HttpPut]
+    public ActionResult<ImageViewModel> ChangeAvatar(int imageId)
+    {
+        ImageViewModel imageViewModel = _accountService.ChangeAvatar(imageId, this.GetUserIdFromClaims());
+        return Ok(imageViewModel);
     }
 
     [Route("Register")]

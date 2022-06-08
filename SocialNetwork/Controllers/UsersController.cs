@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Constants;
 using SocialNetwork.Extensions;
 using SocialNetwork.Models.FriendsRequests;
+using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Services;
 
@@ -35,6 +36,14 @@ public class UsersController : ControllerBase
         return Ok(userViewModel);
     }
 
+    [Route("{userId}/GetAvatar")]
+    [HttpGet]
+    public ActionResult<ImageViewModel?> GetUserAvatar(int userId)
+    {
+        ImageViewModel? imageViewModel = _usersService.GetUserAvatar(userId);
+        return Ok(imageViewModel);
+    }
+
     [Authorize]
     [Route("SendFriendRequest")]
     [HttpPost]
@@ -55,12 +64,12 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = RolesNameConstants.AdminRole)]
     [HttpPut]
-    public ActionResult<UserPreviewModel> Put(UserPutModel userPutModel)
+    public ActionResult<UserPreviewModel> Put(UserEditModel userEditModel)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
         
-        UserPreviewModel userPreviewModel = _usersService.Update(userPutModel);
+        UserPreviewModel userPreviewModel = _usersService.Update(userEditModel);
         return Ok(userPreviewModel);
     }
 

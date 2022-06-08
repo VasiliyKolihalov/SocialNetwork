@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Extensions;
 using SocialNetwork.Models.Communities;
+using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Posts;
 using SocialNetwork.Services;
 
@@ -43,12 +44,20 @@ public class CommunitiesController : ControllerBase
         return Ok(communityPreviewModels);
     }
 
-    [Route("{id}")]
+    [Route("{communityId}")]
     [HttpGet]
-    public ActionResult<CommunityViewModel> GetWithPosts(int id)
+    public ActionResult<CommunityViewModel> GetWithPosts(int communityId)
     {
-        CommunityViewModel communityViewModel = _communitiesService.GetWithPosts(id);
+        CommunityViewModel communityViewModel = _communitiesService.GetWithPosts(communityId);
         return Ok(communityViewModel);
+    }
+
+    [Route("{communityId}/GetAvatar")]
+    [HttpGet]
+    public ActionResult<ImageViewModel?> GetCommunityAvatar(int communityId)
+    {
+        ImageViewModel? imageViewModel = _communitiesService.GetCommunityAvatar(communityId);
+        return Ok(imageViewModel);
     }
 
     [Route("{communityId}/Subscribe")]
@@ -70,6 +79,9 @@ public class CommunitiesController : ControllerBase
     [HttpPost]
     public ActionResult<CommunityPreviewModel> Post(CommunityAddModel communityAddModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         CommunityPreviewModel communityPreviewModel = _communitiesService.Create(communityAddModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
@@ -77,10 +89,25 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<CommunityPreviewModel> Put(CommunityEditModel communityEditModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         CommunityPreviewModel communityPreviewModel = _communitiesService.Edit(communityEditModel, this.GetUserIdFromClaims());
         return Ok(communityPreviewModel);
     }
-    
+
+    [HttpPut("{communityId}/ChangeAvatar")]
+    public ActionResult<ImageViewModel> ChangeAvatar(int communityId, ImageAddModel imageAddModel)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
+        ImageViewModel imageViewModel =
+            _communitiesService.ChangeAvatar(communityId, imageAddModel, this.GetUserIdFromClaims());
+
+        return Ok(imageViewModel);
+    }
+
     [HttpDelete("{communityId}")]
     public ActionResult<CommunityPreviewModel> Delete(int communityId)
     {
@@ -92,6 +119,9 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> AddPost(PostAddModel postAddModel, int communityId)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         PostViewModel postViewModel = _communitiesService.AddPost(postAddModel, communityId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
@@ -100,9 +130,13 @@ public class CommunitiesController : ControllerBase
     [HttpPut]
     public ActionResult<PostViewModel> EditPost(PostEditModel postEditModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         PostViewModel postViewModel = _communitiesService.EditPost(postEditModel, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
+    
     
     [Route("DeletePost/{postId}")]
     [HttpPut]

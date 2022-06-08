@@ -9,6 +9,7 @@ public class ApplicationContext : IApplicationContext
     public ICommunitiesRepository Communities { get; }
     public IPostsRepository Posts { get; }
     public IFriendRequestsRepository FriendRequests { get; }
+    public IImagesRepository Images { get; }
 
     public ApplicationContext(string connectionString)
     {
@@ -19,5 +20,6 @@ public class ApplicationContext : IApplicationContext
         Communities = new CommunitiesRepository(connectionString);
         Posts = new PostsRepository(connectionString);
         FriendRequests = new FriendRequestsRepository(connectionString);
+        Images = new ImagesRepository(connectionString);
     }
 }
