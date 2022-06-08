@@ -10,7 +10,7 @@ public class UserViewModel
     public string SecondName { get; set; }
     public string Email { get; set; }
     
-    public ImageViewModel Avatar { get; set; }
+    public ImageViewModel? Avatar { get; set; }
     public List<ImageViewModel> Photos { get; set; }
     public List<CommunityPreviewModel> Communities { get; set; }
     public List<UserPreviewModel> Friends { get; set; }

@@ -38,9 +38,9 @@ public class UsersController : ControllerBase
 
     [Route("{userId}/GetAvatar")]
     [HttpGet]
-    public ActionResult<ImageViewModel> GetUserAvatar(int userId)
+    public ActionResult<ImageViewModel?> GetUserAvatar(int userId)
     {
-        ImageViewModel imageViewModel = _usersService.GetUserAvatar(userId);
+        ImageViewModel? imageViewModel = _usersService.GetUserAvatar(userId);
         return Ok(imageViewModel);
     }
 
@@ -64,12 +64,12 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = RolesNameConstants.AdminRole)]
     [HttpPut]
-    public ActionResult<UserPreviewModel> Put(UserPutModel userPutModel)
+    public ActionResult<UserPreviewModel> Put(UserEditModel userEditModel)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
         
-        UserPreviewModel userPreviewModel = _usersService.Update(userPutModel);
+        UserPreviewModel userPreviewModel = _usersService.Update(userEditModel);
         return Ok(userPreviewModel);
     }
 

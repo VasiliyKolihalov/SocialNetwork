@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SocialNetwork.Constants;
 
 namespace SocialNetwork.Models.Messages;
 
 public class MessageAddModel
 {
-    [Required] public string Text { get; set; }
+    [Required] [MaxLength(500)] public string Text { get; set; }
 }

@@ -54,18 +54,18 @@ public class RolesService
         }
     }
 
-    public RoleViewModel Update(RoleUpdateModel roleUpdateModel)
+    public RoleViewModel Update(RoleEditModel roleEditModel)
     {
-        _applicationContext.Roles.Get(roleUpdateModel.Id);
+        _applicationContext.Roles.Get(roleEditModel.Id);
         
         var mapperConfig = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<RoleUpdateModel, Role>();
+            cfg.CreateMap<RoleEditModel, Role>();
             cfg.CreateMap<Role, RoleViewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
-        Role role = mapper.Map<RoleUpdateModel, Role>(roleUpdateModel);
+        Role role = mapper.Map<RoleEditModel, Role>(roleEditModel);
         _applicationContext.Roles.Update(role);
 
         return mapper.Map<Role, RoleViewModel>(role);

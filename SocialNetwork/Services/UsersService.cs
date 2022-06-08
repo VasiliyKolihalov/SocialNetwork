@@ -39,7 +39,7 @@ public class UsersService
 
             cfg.CreateMap<User, UserPreviewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
-            cfg.CreateMap<Image?, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
                 opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
         });
         var mapper = new Mapper(mapperConfig);
@@ -52,25 +52,29 @@ public class UsersService
         UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
         userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
-        userViewModel.Avatar = mapper.Map<Image?, ImageViewModel>(avatar);
         userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
+        userViewModel.Avatar = avatar == null ? null : mapper.Map<Image, ImageViewModel>(avatar);
+        
         return userViewModel;
     }
     
-    public ImageViewModel GetUserAvatar(int userId)
+    public ImageViewModel? GetUserAvatar(int userId)
     {
         _applicationContext.Users.Get(userId);
 
         Image? image = _applicationContext.Images.GetUserAvatar(userId);
         
+        if(image == null)
+            return null;
+        
         var mapperConfig = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<Image?, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
                 opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
         });
         var mapper = new Mapper(mapperConfig);
 
-        ImageViewModel imageViewModel = mapper.Map<Image?, ImageViewModel>(image);
+        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
         return imageViewModel;
     }
 
@@ -130,18 +134,18 @@ public class UsersService
         return userPreviewModel;
     }
 
-    public UserPreviewModel Update(UserPutModel userPutModel)
+    public UserPreviewModel Update(UserEditModel userEditModel)
     {
-        _applicationContext.Users.Get(userPutModel.Id);
+        _applicationContext.Users.Get(userEditModel.Id);
 
         var mapperConfig = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<UserPutModel, User>();
+            cfg.CreateMap<UserEditModel, User>();
             cfg.CreateMap<User, UserPreviewModel>();
         });
         var mapper = new Mapper(mapperConfig);
 
-        User user = mapper.Map<UserPutModel, User>(userPutModel);
+        User user = mapper.Map<UserEditModel, User>(userEditModel);
         _applicationContext.Users.Update(user);
 
         UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(user);

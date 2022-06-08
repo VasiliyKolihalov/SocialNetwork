@@ -2,7 +2,6 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 using SocialNetwork.Exceptions;
-using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Images;
 
 namespace SocialNetwork.Repository;
@@ -62,6 +61,32 @@ public class ImagesRepository : IImagesRepository
         }
     }
 
+    public Image? GetCommunityAvatar(int communityId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = @"SELECT Images.Id, Images.ImageData, Images.UserId FROM Images
+                                INNER JOIN CommunitiesAvatars ON Images.Id = CommunitiesAvatars.ImageId AND CommunitiesAvatars.CommunityId = @communityId";
+
+            Image image = connection.QueryFirstOrDefault<Image>(sqlQuery, new {communityId});
+
+            return image;
+        }
+    }
+
+    public IEnumerable<Image> GetPostImages(int postId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = @"SELECT Images.Id, Images.ImageData, Images.UserId FROM Images
+                                INNER JOIN PostsImages ON Images.Id = PostsImages.ImageId AND PostsImages.PostId = @postId";
+
+            IEnumerable<Image> images = connection.Query<Image>(sqlQuery, new {postId});
+
+            return images;
+        }
+    }
+
     public void AddPhotoToUser(int userId, int imageId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -71,23 +96,15 @@ public class ImagesRepository : IImagesRepository
         }
     }
 
-    public void DeletePhotoFromUser(int userId, int imageId)
+    public void AddImageToPost(int postId, int imageId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
-            string sqlQuery = "DELETE UsersPhotos WHERE UserId = @userId AND ImageId = @imageId";
-            connection.Query(sqlQuery, new {userId, imageId});
+            string sqlQuery = "INSERT INTO PostsImages VALUES(@postId, @imageId)";
+            connection.Query(sqlQuery, new {postId, imageId});
         }
     }
 
-    public void UpdateUserAvatar(int userId, int imageId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string sqlQuery = "UPDATE UsersAvatars SET ImageId = @imageId WHERE UserId = @userId";
-            connection.Query(sqlQuery, new {imageId, userId});
-        }
-    }
 
     public void SetDefaultValueForUserAvatar(int userId)
     {
@@ -95,6 +112,15 @@ public class ImagesRepository : IImagesRepository
         {
             string sqlQuery = "INSERT INTO UsersAvatars VALUES (@userId, NULL)";
             connection.Query(sqlQuery, new {userId});
+        }
+    }
+
+    public void SetDefaultValueForCommunityAvatar(int communityId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "INSERT INTO CommunitiesAvatars VALUES (@communityId, NULL)";
+            connection.Query(sqlQuery, new {communityId});
         }
     }
 
@@ -108,13 +134,39 @@ public class ImagesRepository : IImagesRepository
         }
     }
 
+    public void UpdateUserAvatar(int userId, int imageId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "UPDATE UsersAvatars SET ImageId = @imageId WHERE UserId = @userId";
+            connection.Query(sqlQuery, new {imageId, userId});
+        }
+    }
+
+    public void UpdateCommunityAvatar(int communityId, int imageId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "UPDATE CommunitiesAvatars SET ImageId = @imageId WHERE CommunityId = @communityId";
+            connection.Query(sqlQuery, new {communityId, imageId});
+        }
+    }
+
     public void Update(Image item)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             string sqlQuery = "UPDATE Images SET ImageData = @ImageData WHERE Id = @Id";
             connection.QuerySingle<int>(sqlQuery, item);
-            
+        }
+    }
+
+    public void DeletePhotoFromUser(int userId, int imageId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "DELETE UsersPhotos WHERE UserId = @userId AND ImageId = @imageId";
+            connection.Query(sqlQuery, new {userId, imageId});
         }
     }
 

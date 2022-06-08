@@ -35,7 +35,7 @@ public class AccountService
 
             cfg.CreateMap<User, UserPreviewModel>();
             cfg.CreateMap<Community, CommunityPreviewModel>();
-            cfg.CreateMap<Image?, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
                 opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
         });
         var mapper = new Mapper(mapperConfig);
@@ -48,8 +48,9 @@ public class AccountService
         UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
         userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
-        userViewModel.Avatar = mapper.Map<Image?, ImageViewModel>(avatar);
         userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
+        userViewModel.Avatar = avatar == null ? null : mapper.Map<Image, ImageViewModel>(avatar);
+        
         return userViewModel;
     }
 
