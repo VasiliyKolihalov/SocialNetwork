@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Extensions;
+using SocialNetwork.Models.Comments;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Posts;
@@ -138,11 +139,53 @@ public class CommunitiesController : ControllerBase
     }
     
     
-    [Route("DeletePost/{postId}")]
+    [Route("{postId}/Delete")]
     [HttpPut]
     public ActionResult<PostViewModel> DeletePost(int communityId, int postId)
     {
         PostViewModel postViewModel = _communitiesService.DeletePost(postId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
+    }
+
+    [Route("{postId}/GetComments")]
+    [HttpGet]
+    public ActionResult<IEnumerable<CommentViewModel>> GetPostComments(int postId)
+    {
+        IEnumerable<CommentViewModel> commentViewModels = _communitiesService.GetPostComments(postId);
+        return Ok(commentViewModels);
+    }
+
+    [Route("{postId}/AddComment")]
+    [HttpPut]
+    public ActionResult<CommentViewModel> AddComment(CommentAddModel commentAddModel, int postId)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        CommentViewModel commentViewModel =
+            _communitiesService.AddComment(commentAddModel, postId, this.GetUserIdFromClaims());
+
+        return Ok(commentViewModel);
+    }
+
+    [Route("EditComment")]
+    [HttpPut]
+    public ActionResult<CommentViewModel> EditComment(CommentEditModel commentEditModel)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        CommentViewModel commentViewModel =
+            _communitiesService.EditComment(commentEditModel, this.GetUserIdFromClaims());
+
+        return Ok(commentViewModel);
+    }
+    
+    [Route("{commentId}/DeleteComment")]
+    [HttpPut]
+    public ActionResult<CommentViewModel> DeleteComment(int commentId)
+    {
+        CommentViewModel commentViewModels = _communitiesService.DeleteComment(commentId, this.GetUserIdFromClaims());
+        return Ok(commentViewModels);
     }
 }
