@@ -173,6 +173,7 @@ public class CorrespondencesService
 
         CorrespondencePreviewModel correspondencePreviewModel =
             mapper.Map<Correspondence, CorrespondencePreviewModel>(updatedCorrespondence);
+        correspondencePreviewModel.Users = mapper.Map<List<User>, List<UserPreviewModel>>(correspondence.Users);
         return correspondencePreviewModel;
     }
 
@@ -244,6 +245,8 @@ public class CorrespondencesService
         _applicationContext.Messages.Update(updatedMessage);
 
         MessageViewModel messageViewModel = mapper.Map<Message, MessageViewModel>(updatedMessage);
+        messageViewModel.DateTime = message.DateTime;
+        messageViewModel.Sender = mapper.Map<User, UserPreviewModel>(message.Sender);
         return messageViewModel;
     }
 

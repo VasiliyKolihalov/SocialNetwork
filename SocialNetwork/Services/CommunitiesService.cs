@@ -1,8 +1,10 @@
 ﻿using System.Security.Cryptography;
 using AutoMapper;
 using SocialNetwork.Exceptions;
+using SocialNetwork.Models.Comments;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Images;
+using SocialNetwork.Models.Messages;
 using SocialNetwork.Models.Posts;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Repository;
@@ -349,5 +351,91 @@ public class CommunitiesService
         postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
         
         return postViewModel;
+    }
+
+    public IEnumerable<CommentViewModel> GetPostComments(int postId)
+    {
+        _applicationContext.Posts.Get(postId);
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Comment, CommentViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+        
+        IEnumerable<Comment> comments = _applicationContext.Comments.GetPostsComment(postId);
+
+        IEnumerable<CommentViewModel> commentViewModels = mapper.Map<IEnumerable<Comment>, IEnumerable<CommentViewModel>>(comments);
+
+        return commentViewModels;
+    }
+
+    public CommentViewModel AddComment(CommentAddModel commentAddModel, int postId, int userId)
+    {
+        _applicationContext.Posts.Get(postId);
+        
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<CommentAddModel, Comment>();
+            
+            cfg.CreateMap<Comment, CommentViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+
+        Comment comment = mapper.Map<CommentAddModel, Comment>(commentAddModel);
+        User user = _applicationContext.Users.Get(userId);
+        comment.User = user;
+        comment.PostId = postId;
+        
+        _applicationContext.Comments.Add(comment);
+
+        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+        return commentViewModel;
+    }
+
+    public CommentViewModel EditComment(CommentEditModel commentEditModel, int userId)
+    {
+        Comment comment = _applicationContext.Comments.Get(commentEditModel.Id);
+
+        if (comment.User.Id != userId)
+            throw new NotFoundException("Comment not found");
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<CommentEditModel, Comment>();
+
+            cfg.CreateMap<Comment, CommentViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+
+        Comment updatedComment = mapper.Map<CommentEditModel, Comment>(commentEditModel);
+        _applicationContext.Comments.Update(updatedComment);
+        
+        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(updatedComment);
+        commentViewModel.User = mapper.Map<User, UserPreviewModel>(comment.User);
+        return commentViewModel;
+    }
+
+    public CommentViewModel DeleteComment(int commentId, int userId)
+    {
+        Comment comment = _applicationContext.Comments.Get(commentId);
+
+        if (comment.User.Id != userId)
+            throw new NotFoundException("Comment not found");
+        
+        _applicationContext.Comments.Delete(commentId);
+        
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Comment, CommentViewModel>();
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+        
+        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+        return commentViewModel;
     }
 }

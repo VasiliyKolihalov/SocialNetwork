@@ -11,5 +11,6 @@ public interface IApplicationContext
 
     public IFriendRequestsRepository FriendRequests { get; }
     public IImagesRepository Images { get; }
+    public ICommentsRepository Comments { get; }
 
 }
