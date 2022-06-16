@@ -87,7 +87,7 @@ public class CorrespondencesController : ControllerBase
         return Ok(correspondencePreviewModel);
     }
     
-    [Route("{correspondenceId}/SendMessage")]
+    [Route("{correspondenceId}/Messages/Send")]
     [HttpPut]
     public ActionResult<MessageViewModel> SendMessage(MessageAddModel messageAddModel, int correspondenceId)
     {
@@ -99,7 +99,7 @@ public class CorrespondencesController : ControllerBase
         return Ok(messageViewModel);
     }
 
-    [Route("EditMessage")]
+    [Route("Messages/Edit")]
     [HttpPut]
     public ActionResult<MessageViewModel> EditMessage(MessageEditModel messageEditModel)
     {
@@ -111,7 +111,7 @@ public class CorrespondencesController : ControllerBase
         return Ok(messageViewModel);
     }
 
-    [Route("DeleteMessage/{messageId}")]
+    [Route("Messages/{messageId}/Delete")]
     [HttpPut]
     public ActionResult<MessageViewModel> DeleteMessage(long messageId)
     {

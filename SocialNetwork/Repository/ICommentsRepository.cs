@@ -4,5 +4,5 @@ namespace SocialNetwork.Repository;
 
 public interface ICommentsRepository : IRepository<Comment, int>
 {
-    public IEnumerable<Comment> GetPostsComment(int postId);
+    public IEnumerable<Comment> GetPostComments(int postId);
 }

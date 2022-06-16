@@ -51,6 +51,18 @@ public class UsersRepository : IUsersRepository
         }
         
     }
+    
+    public IEnumerable<User> GetUsersWhoLikePost(int postId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                                 INNER JOIN PostsLikes ON Users.Id = PostsLikes.UserId AND PostsLikes.PostId = postId";
+
+            IEnumerable<User> users = connection.Query<User>(sqlQuery, new {postId});
+            return users;
+        }
+    }
 
     public void AddUserToFriends(int userId, int friendId)
     {

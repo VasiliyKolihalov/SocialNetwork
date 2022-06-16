@@ -45,11 +45,11 @@ public class UsersController : ControllerBase
     }
 
     [Authorize]
-    [Route("SendFriendRequest")]
+    [Route("{userId}/SendFriendRequest")]
     [HttpPost]
-    public ActionResult<UserPreviewModel> SendFriendRequest(FriendRequestAddModel friendRequestAddModel)
+    public ActionResult<UserPreviewModel> SendFriendRequest(FriendRequestAddModel friendRequestAddModel, int userId)
     {
-        UserPreviewModel userPreviewModel = _usersService.SendFriendRequest(friendRequestAddModel, this.GetUserIdFromClaims());
+        UserPreviewModel userPreviewModel = _usersService.SendFriendRequest(friendRequestAddModel,userId, this.GetUserIdFromClaims());
         return Ok(userPreviewModel);
     }
 

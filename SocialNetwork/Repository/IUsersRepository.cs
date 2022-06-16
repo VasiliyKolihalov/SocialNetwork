@@ -9,5 +9,6 @@ public interface IUsersRepository : IRepository<User, int>
     public IEnumerable<User> GetUserFriends(int userId);
     public void AddUserToFriends(int userId, int friendId);
     public void DeleteUserFromFriend(int userId, int friendId);
-   
+
+    public IEnumerable<User> GetUsersWhoLikePost(int postId);
 }

@@ -34,7 +34,7 @@ public class CommentsRepository : ICommentsRepository
         }
     }
 
-    public IEnumerable<Comment> GetPostsComment(int postId)
+    public IEnumerable<Comment> GetPostComments(int postId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {

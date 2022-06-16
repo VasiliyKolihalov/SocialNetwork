@@ -59,7 +59,7 @@ public class CommunitiesService
         return communityPreviewModels;
     }
 
-    public CommunityViewModel GetWithPosts(int communityId)
+    public CommunityViewModel GetWithPosts(int communityId, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityId);
 
@@ -81,6 +81,8 @@ public class CommunitiesService
 
             IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postViewModel.Id);
             postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+            
+            postViewModel.IsUserLike = _applicationContext.Posts.IsUserLikePost(userId, postViewModel.Id);
         }
         
         CommunityViewModel communityViewModel = mapper.Map<Community, CommunityViewModel>(community);
@@ -243,6 +245,8 @@ public class CommunitiesService
         return communityPreviewModel;
     }
 
+    #region Posts
+    
     public PostViewModel AddPost(PostAddModel postAddModel, int communityId, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityId);
@@ -316,7 +320,8 @@ public class CommunitiesService
         postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
         IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postEditModel.Id);
         postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
-        
+        postViewModel.IsUserLike = _applicationContext.Posts.IsUserLikePost(userId, postViewModel.Id);
+
         return postViewModel;
     }
 
@@ -349,10 +354,15 @@ public class CommunitiesService
         PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
         postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
         postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
-        
+        postViewModel.IsUserLike = _applicationContext.Posts.IsUserLikePost(userId, postViewModel.Id);
+
         return postViewModel;
     }
+    
+    #endregion
 
+    #region  Comments
+    
     public IEnumerable<CommentViewModel> GetPostComments(int postId)
     {
         _applicationContext.Posts.Get(postId);
@@ -364,7 +374,7 @@ public class CommunitiesService
         });
         var mapper = new Mapper(mapperConfig);
         
-        IEnumerable<Comment> comments = _applicationContext.Comments.GetPostsComment(postId);
+        IEnumerable<Comment> comments = _applicationContext.Comments.GetPostComments(postId);
 
         IEnumerable<CommentViewModel> commentViewModels = mapper.Map<IEnumerable<Comment>, IEnumerable<CommentViewModel>>(comments);
 
@@ -438,4 +448,84 @@ public class CommunitiesService
         CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
         return commentViewModel;
     }
+    
+    #endregion
+
+    #region Likes
+
+    public IEnumerable<UserPreviewModel> GetUsersWhoLikePost(int postId)
+    {
+        _applicationContext.Posts.Get(postId);
+
+        var mapperConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
+        var mapper = new Mapper(mapperConfiguration);
+
+        IEnumerable<User> users = _applicationContext.Users.GetUsersWhoLikePost(postId);
+
+        IEnumerable<UserPreviewModel> userPreviewModels =
+            mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
+
+        return userPreviewModels;
+    }
+
+    public PostViewModel LikePost(int postId, int userId)
+    {
+        Post post = _applicationContext.Posts.Get(postId);
+
+        if (_applicationContext.Posts.IsUserLikePost(userId, postId))
+            throw new BadRequestException("User already like post");
+        
+        _applicationContext.Posts.AddLikeToPost(userId, postId);
+        
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Post, PostViewModel>();
+            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
+            cfg.CreateMap<Community, CommunityPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+        
+        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+        Community community = _applicationContext.Communities.Get(post.CommunityId);
+        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postId);
+        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        postViewModel.IsUserLike = true;
+        postViewModel.LikesCount++;
+
+        return postViewModel;
+    }
+
+    public PostViewModel DeleteLikeFromPost(int postId, int userId)
+    {
+        Post post = _applicationContext.Posts.Get(postId);
+
+        if (!_applicationContext.Posts.IsUserLikePost(userId, postId))
+            throw new BadRequestException("User didn't like post");
+        
+        _applicationContext.Posts.DeleteLikeFromPost(userId, postId);
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Post, PostViewModel>();
+            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
+                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
+            cfg.CreateMap<Community, CommunityPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+        
+        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+        Community community = _applicationContext.Communities.Get(post.CommunityId);
+        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postId);
+        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        postViewModel.IsUserLike = false;
+        postViewModel.LikesCount--;
+
+        return postViewModel;
+    }
+    
+    #endregion
+    
 }
