@@ -5,7 +5,7 @@ using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Comments;
 using SocialNetwork.Models.Users;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Comments;
 
 public class CommentsRepository : ICommentsRepository
 {
@@ -23,30 +23,16 @@ public class CommentsRepository : ICommentsRepository
             string commentsQuery = "SELECT * FROM Comments";
             IEnumerable<Comment> comments = connection.Query<Comment>(commentsQuery);
 
-            string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
-                                 INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
-            foreach (var comment in comments)
-            {
-                comment.User = connection.QuerySingle<User>(userQuery, new {Id = comment.Id});
-            }
-            return comments;
-        }
-    }
-
-    public IEnumerable<Comment> GetPostsComment(int postId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string commentsQuery = "SELECT * FROM Comments WHERE PostId = @postId";
-            IEnumerable<Comment> comments = connection.Query<Comment>(commentsQuery, new {postId});
-
             string userQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                                  INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
+            string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
+
             foreach (var comment in comments)
             {
                 comment.User = connection.QuerySingle<User>(userQuery, new {Id = comment.Id});
+                comment.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {Id = comment.Id});
             }
+
             return comments;
         }
     }
@@ -61,9 +47,14 @@ public class CommentsRepository : ICommentsRepository
             if (comment == null)
                 throw new NotFoundException("Comment not found");
 
-            string userQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+            string userQuery =
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                                  INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
+            string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
+            
             comment.User = connection.QuerySingle<User>(userQuery, new {Id = comment.Id});
+            comment.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {Id = comment.Id});
+            
             return comment;
         }
     }
@@ -95,6 +86,58 @@ public class CommentsRepository : ICommentsRepository
         {
             string sqlQuery = "DELETE Comments WHERE Id = @Id";
             connection.Query(sqlQuery, new {id});
+        }
+    }
+
+
+    public IEnumerable<Comment> GetPostComments(int postId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string commentsQuery = "SELECT * FROM Comments WHERE PostId = @postId";
+            IEnumerable<Comment> comments = connection.Query<Comment>(commentsQuery, new {postId});
+
+            string userQuery =
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                                 INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
+            string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
+
+            foreach (var comment in comments)
+            {
+                comment.User = connection.QuerySingle<User>(userQuery, new {Id = comment.Id});
+                comment.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {Id = comment.Id});
+            }
+
+            return comments;
+        }
+    }
+
+    public bool IsUserLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "SELECT * FROM CommentsLikes WHERE UserId = @userId AND CommentId = @contentId";
+            object userLike = connection.QueryFirstOrDefault<object>(sqlQuery, new {userId, contentId});
+
+            return userLike != null;
+        }
+    }
+
+    public void AddLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "INSERT INTO CommentsLikes VALUES (@userId, @contentId)";
+            connection.Query(sqlQuery, new {userId, contentId});
+        }
+    }
+
+    public void DeleteLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "DELETE CommentsLikes WHERE UserId = @userId AND CommentId = @contentId";
+            connection.Query(sqlQuery, new {userId, contentId});
         }
     }
 }

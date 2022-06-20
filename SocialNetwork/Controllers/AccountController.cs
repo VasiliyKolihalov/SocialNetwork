@@ -29,7 +29,7 @@ public class AccountController : ControllerBase
     }
     
     [Authorize]
-    [Route("GetFriendRequests")]
+    [Route("Friends/GetRequests")]
     [HttpGet]
     public ActionResult<IEnumerable<FriendsRequestViewModel>> GetFriendRequests()
     {
@@ -38,7 +38,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [Route("ConfirmFriendRequest/{friendRequestId}")]
+    [Route("Friends/{friendRequestId}/ConfirmRequest")]
     [HttpPost]
     public ActionResult<UserPreviewModel> ConfirmFriendRequest(int friendRequestId)
     {
@@ -47,7 +47,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [Route("AddPhotoToAccount")]
+    [Route("Photos/Add")]
     [HttpPost]
     public ActionResult<ImageViewModel> AddPhotoToAccount(ImageAddModel imageAddModel)
     {
@@ -59,7 +59,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [Route("DeletePhotoFromAccount/{imageId}")]
+    [Route("Photos/{imageId}/Delete")]
     [HttpDelete]
     public ActionResult<ImageViewModel> DeletePhotoFromAccount(int imageId)
     {
@@ -68,7 +68,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [Route("ChangeAvatar/{imageId}")]
+    [Route("Photos/{imageId}/ChangeAvatar")]
     [HttpPut]
     public ActionResult<ImageViewModel> ChangeAvatar(int imageId)
     {

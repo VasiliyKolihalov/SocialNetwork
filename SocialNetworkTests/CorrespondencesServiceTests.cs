@@ -7,6 +7,9 @@ using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Correspondences;
 using SocialNetwork.Models.Messages;
 using SocialNetwork.Models.Users;
+using SocialNetwork.Repositories;
+using SocialNetwork.Repositories.Correspondences;
+using SocialNetwork.Repositories.Messages;
 using SocialNetwork.Repository;
 using SocialNetwork.Services;
 

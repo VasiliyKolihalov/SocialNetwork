@@ -2,11 +2,10 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 using SocialNetwork.Exceptions;
-using SocialNetwork.Models.Correspondences;
 using SocialNetwork.Models.Messages;
 using SocialNetwork.Models.Users;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Messages;
 
 public class MessagesRepository : IMessagesRepository
 {
@@ -36,26 +35,6 @@ public class MessagesRepository : IMessagesRepository
         }
     }
 
-    public IEnumerable<Message> GetFromCorrespondence(int correspondenceId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            IEnumerable<Message> messages =
-                connection.Query<Message>("SELECT * FROM Messages WHERE CorrespondenceId = @Id", new {Id = correspondenceId});
-
-            string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
-                INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
-            
-            foreach (var message in messages)
-            {
-                message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
-            }
-
-            return messages;
-        }
-    }
-
     public Message Get(long id)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -69,13 +48,12 @@ public class MessagesRepository : IMessagesRepository
             string userQuery =
                 @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
-            
+
             message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
 
             return message;
         }
     }
-
 
     public void Add(Message item)
     {
@@ -111,6 +89,27 @@ public class MessagesRepository : IMessagesRepository
         {
             var sqlQuery = "DELETE Messages WHERE Id = @id";
             connection.Query(sqlQuery, new {id});
+        }
+    }
+
+    public IEnumerable<Message> GetFromCorrespondence(int correspondenceId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            IEnumerable<Message> messages =
+                connection.Query<Message>("SELECT * FROM Messages WHERE CorrespondenceId = @Id",
+                    new {Id = correspondenceId});
+
+            string userQuery =
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
+
+            foreach (var message in messages)
+            {
+                message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
+            }
+
+            return messages;
         }
     }
 }

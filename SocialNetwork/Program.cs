@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SocialNetwork.Constants;
@@ -6,7 +5,7 @@ using SocialNetwork.Middlewares;
 using SocialNetwork.Models;
 using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
-using SocialNetwork.Repository;
+using SocialNetwork.Repositories;
 using SocialNetwork.Services;
 
 var builder = WebApplication.CreateBuilder(args);

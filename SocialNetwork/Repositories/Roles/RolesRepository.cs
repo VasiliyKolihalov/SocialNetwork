@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
+using SocialNetwork.Repositories.Roles;
 
 namespace SocialNetwork.Repository;
 
@@ -21,30 +22,6 @@ public class RolesRepository : IRolesRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             return connection.Query<Role>("SELECT * FROM Roles");
-        }
-    }
-
-    public IEnumerable<Role> GetFromUserId(int userId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string rolesQuery =
-                @"SELECT Roles.Id, Roles.Name FROM Roles INNER JOIN UsersRoles ON Roles.Id = UsersRoles.RoleId AND UsersRoles.UserId = @userId";
-            IEnumerable<Role> roles = connection.Query<Role>(rolesQuery, new {userId});
-            return roles;
-        }
-    }
-
-    public Role GetFromName(string name)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            Role role = connection.QueryFirstOrDefault<Role>("SELECT * FROM Roles WHERE Name = @name", new {name});
-
-            if (role == null)
-                throw new NotFoundException("Role not found");
-
-            return role;
         }
     }
 
@@ -70,15 +47,6 @@ public class RolesRepository : IRolesRepository
         }
     }
 
-    public void AddRoleToUser(int userId, int roleId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string userRoleQuery = "INSERT INTO UsersRoles VALUES (@userId, @roleId)";
-            connection.Query(userRoleQuery, new {userId, roleId});
-        }
-    }
-
     public void Update(Role item)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -92,6 +60,39 @@ public class RolesRepository : IRolesRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             connection.Query("DELETE Roles WHERE Id = @id", new {id});
+        }
+    }
+    
+    public IEnumerable<Role> GetFromUserId(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string rolesQuery =
+                @"SELECT Roles.Id, Roles.Name FROM Roles INNER JOIN UsersRoles ON Roles.Id = UsersRoles.RoleId AND UsersRoles.UserId = @userId";
+            IEnumerable<Role> roles = connection.Query<Role>(rolesQuery, new {userId});
+            return roles;
+        }
+    }
+
+    public Role GetFromName(string name)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            Role role = connection.QueryFirstOrDefault<Role>("SELECT * FROM Roles WHERE Name = @name", new {name});
+
+            if (role == null)
+                throw new NotFoundException("Role not found");
+
+            return role;
+        }
+    }
+    
+    public void AddRoleToUser(int userId, int roleId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string userRoleQuery = "INSERT INTO UsersRoles VALUES (@userId, @roleId)";
+            connection.Query(userRoleQuery, new {userId, roleId});
         }
     }
 }

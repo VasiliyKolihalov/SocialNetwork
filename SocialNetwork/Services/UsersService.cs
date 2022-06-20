@@ -4,7 +4,7 @@ using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Users;
-using SocialNetwork.Repository;
+using SocialNetwork.Repositories;
 
 namespace SocialNetwork.Services;
 
@@ -78,21 +78,21 @@ public class UsersService
         return imageViewModel;
     }
 
-    public UserPreviewModel SendFriendRequest(FriendRequestAddModel friendRequestAddModel, int senderId)
+    public UserPreviewModel SendFriendRequest(FriendRequestAddModel friendRequestAddModel, int recipientId, int senderId)
     {
-        if (friendRequestAddModel.RecipientId == senderId)
+        if (recipientId == senderId)
             throw new BadRequestException("Sender and recipient are same");
 
-        User recipientUser = _applicationContext.Users.Get(friendRequestAddModel.RecipientId);
+        User recipientUser = _applicationContext.Users.Get(recipientId);
 
         IEnumerable<FriendRequest> userRecipientFriendRequests =
-            _applicationContext.FriendRequests.GetUserFriendsRequests(friendRequestAddModel.RecipientId);
+            _applicationContext.FriendRequests.GetUserFriendsRequests(recipientId);
         if (userRecipientFriendRequests.Any(x =>
-                x.RecipientId == friendRequestAddModel.RecipientId && x.Sender.Id == senderId))
+                x.RecipientId == recipientId && x.Sender.Id == senderId))
             throw new BadRequestException("Request has already been sent");
 
         IEnumerable<User> userRecipientFriends =
-            _applicationContext.Users.GetUserFriends(friendRequestAddModel.RecipientId);
+            _applicationContext.Users.GetUserFriends(recipientId);
         if (userRecipientFriends.Any(x => x.Id == senderId))
             throw new BadRequestException("User is already friends");
 
@@ -107,7 +107,7 @@ public class UsersService
         FriendRequest friendRequest = mapper.Map<FriendRequestAddModel, FriendRequest>(friendRequestAddModel);
         User senderUser = _applicationContext.Users.Get(senderId);
         friendRequest.Sender = senderUser;
-        friendRequest.RecipientId = friendRequestAddModel.RecipientId;
+        friendRequest.RecipientId = recipientId;
         _applicationContext.FriendRequests.Add(friendRequest);
 
         UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(recipientUser);

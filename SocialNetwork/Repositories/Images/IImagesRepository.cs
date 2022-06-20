@@ -1,6 +1,6 @@
 ﻿using SocialNetwork.Models.Images;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Images;
 
 public interface IImagesRepository : IRepository<Image, int>
 {

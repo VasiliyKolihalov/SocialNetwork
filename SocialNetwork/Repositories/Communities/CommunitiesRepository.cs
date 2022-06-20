@@ -5,7 +5,7 @@ using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Users;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Communities;
 
 public class CommunitiesRepository : ICommunitiesRepository
 {
@@ -61,6 +61,42 @@ public class CommunitiesRepository : ICommunitiesRepository
             community.Users = connection.Query<User>(usersQuery, new {Id = community.Id}).ToList();
 
             return community;
+        }
+    }
+
+
+    public void Add(Community item)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var sqlQuery =
+                "INSERT INTO Communities VALUES (@Name, @Description, @AuthorId) SELECT @@IDENTITY";
+
+            int communityId = connection.QuerySingle<int>(sqlQuery,
+                new
+                {
+                    Name = item.Name, Description = item.Description,
+                    AuthorId = item.Author.Id
+                });
+            item.Id = communityId;
+        }
+    }
+
+    public void Update(Community item)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var sqlQuery =
+                "UPDATE Communities SET Name = @Name, Description = @Description WHERE Id = @Id";
+            connection.Query(sqlQuery, item);
+        }
+    }
+
+    public void Delete(int id)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Query("DELETE Communities WHERE Id = @id", new {id});
         }
     }
 
@@ -131,41 +167,6 @@ public class CommunitiesRepository : ICommunitiesRepository
         {
             string userCommunityQuery = "DELETE UsersCommunities WHERE UserId = @userId AND CommunityId = @communityId";
             connection.Query(userCommunityQuery, new {userId, communityId});
-        }
-    }
-
-    public void Add(Community item)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            var sqlQuery =
-                "INSERT INTO Communities VALUES (@Name, @Description, @AuthorId) SELECT @@IDENTITY";
-
-            int communityId = connection.QuerySingle<int>(sqlQuery,
-                new
-                {
-                    Name = item.Name, Description = item.Description,
-                    AuthorId = item.Author.Id
-                });
-            item.Id = communityId;
-        }
-    }
-
-    public void Update(Community item)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            var sqlQuery =
-                "UPDATE Communities SET Name = @Name, Description = @Description WHERE Id = @Id";
-            connection.Query(sqlQuery, item);
-        }
-    }
-
-    public void Delete(int id)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            connection.Query("DELETE Communities WHERE Id = @id", new {id});
         }
     }
 }

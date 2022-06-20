@@ -3,6 +3,6 @@
     "Issuer": "SocialNetwork",
     "Audience": "SocialNetwork",
     "Secret": "}4okhfwogue%7D$r#W",
-    "TokenMinuteLifetime": 10
+    "TokenMinuteLifetime": 25
   }
 }

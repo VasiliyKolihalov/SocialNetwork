@@ -1,4 +1,4 @@
-﻿namespace SocialNetwork.Repository;
+﻿namespace SocialNetwork.Repositories;
 
 public interface IRepository<TItem, TId>
 {

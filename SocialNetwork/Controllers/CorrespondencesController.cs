@@ -68,7 +68,7 @@ public class CorrespondencesController : ControllerBase
     }
 
     [Route("{correspondenceId}/AddUser/{userId}")]
-    [HttpPut]
+    [HttpPost]
     public ActionResult<CorrespondencePreviewModel> AddUserToCorrespondence(int correspondenceId, int userId)
     {
         CorrespondencePreviewModel correspondencePreviewModel =
@@ -78,7 +78,7 @@ public class CorrespondencesController : ControllerBase
     }
     
     [Route("{correspondenceId}/DeleteUser/{userId}")]
-    [HttpPut]
+    [HttpDelete]
     public ActionResult<CorrespondencePreviewModel> DeleteUserFromCorrespondence(int correspondenceId, int userId)
     {
         CorrespondencePreviewModel correspondencePreviewModel =
@@ -87,8 +87,8 @@ public class CorrespondencesController : ControllerBase
         return Ok(correspondencePreviewModel);
     }
     
-    [Route("{correspondenceId}/SendMessage")]
-    [HttpPut]
+    [Route("{correspondenceId}/Messages/Send")]
+    [HttpPost]
     public ActionResult<MessageViewModel> SendMessage(MessageAddModel messageAddModel, int correspondenceId)
     {
         if (!ModelState.IsValid)
@@ -99,7 +99,7 @@ public class CorrespondencesController : ControllerBase
         return Ok(messageViewModel);
     }
 
-    [Route("EditMessage")]
+    [Route("Messages/Edit")]
     [HttpPut]
     public ActionResult<MessageViewModel> EditMessage(MessageEditModel messageEditModel)
     {
@@ -111,8 +111,8 @@ public class CorrespondencesController : ControllerBase
         return Ok(messageViewModel);
     }
 
-    [Route("DeleteMessage/{messageId}")]
-    [HttpPut]
+    [Route("Messages/{messageId}/Delete")]
+    [HttpDelete]
     public ActionResult<MessageViewModel> DeleteMessage(long messageId)
     {
         if (!ModelState.IsValid)

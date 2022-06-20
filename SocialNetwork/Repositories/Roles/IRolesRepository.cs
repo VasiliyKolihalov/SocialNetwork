@@ -1,6 +1,6 @@
 ﻿using SocialNetwork.Models.Roles;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Roles;
 
 public interface IRolesRepository : IRepository<Role, int>
 {
