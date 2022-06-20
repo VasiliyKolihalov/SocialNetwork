@@ -10,6 +10,7 @@ using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
+using SocialNetwork.Repositories;
 using SocialNetwork.Repository;
 
 namespace SocialNetwork.Services;
@@ -203,7 +204,7 @@ public class AccountService
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
         };
 
-        List<Role> roles = _applicationContext.Roles.GetFromUserId(user.Id).ToList();
+        IEnumerable<Role> roles = _applicationContext.Roles.GetFromUserId(user.Id).ToList();
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role.Name));

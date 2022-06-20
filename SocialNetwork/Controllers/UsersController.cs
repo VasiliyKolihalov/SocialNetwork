@@ -55,7 +55,7 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [Route("{userId}/DeleteUserFromFriends")]
-    [HttpPost]
+    [HttpDelete]
     public ActionResult<UserPreviewModel> DeleteUserFromFriends(int userId)
     {
         UserPreviewModel userPreviewModel = _usersService.DeleteUserFromFriend(userId, this.GetUserIdFromClaims());

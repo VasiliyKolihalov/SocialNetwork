@@ -1,6 +1,6 @@
 ﻿using SocialNetwork.Models.Correspondences;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Correspondences;
 
 public interface ICorrespondencesRepository : IRepository<Correspondence, int>
 {

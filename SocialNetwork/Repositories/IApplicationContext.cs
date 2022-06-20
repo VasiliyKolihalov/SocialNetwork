@@ -1,4 +1,14 @@
-﻿namespace SocialNetwork.Repository;
+﻿using SocialNetwork.Repositories.Comments;
+using SocialNetwork.Repositories.Communities;
+using SocialNetwork.Repositories.Correspondences;
+using SocialNetwork.Repositories.FriendRequests;
+using SocialNetwork.Repositories.Images;
+using SocialNetwork.Repositories.Messages;
+using SocialNetwork.Repositories.Posts;
+using SocialNetwork.Repositories.Roles;
+using SocialNetwork.Repositories.Users;
+
+namespace SocialNetwork.Repositories;
 
 public interface IApplicationContext
 {

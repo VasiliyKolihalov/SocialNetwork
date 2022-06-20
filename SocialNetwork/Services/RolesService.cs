@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Roles;
-using SocialNetwork.Repository;
+using SocialNetwork.Repositories;
 
 namespace SocialNetwork.Services;
 

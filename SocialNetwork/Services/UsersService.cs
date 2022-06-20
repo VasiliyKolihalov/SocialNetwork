@@ -4,7 +4,7 @@ using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Users;
-using SocialNetwork.Repository;
+using SocialNetwork.Repositories;
 
 namespace SocialNetwork.Services;
 

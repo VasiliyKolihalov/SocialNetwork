@@ -1,7 +1,6 @@
 ﻿using SocialNetwork.Models.Communities;
-using SocialNetwork.Models.Users;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Communities;
 
 public interface ICommunitiesRepository : IRepository<Community, int>
 {

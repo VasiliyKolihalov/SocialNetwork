@@ -1,6 +1,6 @@
 ﻿using SocialNetwork.Models.FriendsRequests;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.FriendRequests;
 
 public interface IFriendRequestsRepository : IRepository<FriendRequest, int>
 {

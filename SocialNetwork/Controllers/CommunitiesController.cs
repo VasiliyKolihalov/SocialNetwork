@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Extensions;
 using SocialNetwork.Models.Comments;
@@ -62,7 +61,7 @@ public class CommunitiesController : ControllerBase
     }
 
     [Route("{communityId}/Subscribe")]
-    [HttpPut]
+    [HttpPost]
     public ActionResult<CommunityPreviewModel> Subscribe(int communityId)
     {
         CommunityPreviewModel communityPreviewModel = _communitiesService.Subscribe(communityId, this.GetUserIdFromClaims());
@@ -70,7 +69,7 @@ public class CommunitiesController : ControllerBase
     }
 
     [Route("{communityId}/Unsubscribe")]
-    [HttpPut]
+    [HttpPost]
     public ActionResult<CommunityPreviewModel> Unsubscribe(int communityId)
     {
         CommunityPreviewModel communityPreviewModel = _communitiesService.Unsubscribe(communityId, this.GetUserIdFromClaims());
@@ -118,7 +117,7 @@ public class CommunitiesController : ControllerBase
     }
 
     [Route("{communityId}/Posts/Add")]
-    [HttpPut]
+    [HttpPost]
     public ActionResult<PostViewModel> AddPost(PostAddModel postAddModel, int communityId)
     {
         if (!ModelState.IsValid)
@@ -141,10 +140,34 @@ public class CommunitiesController : ControllerBase
     
     
     [Route("Posts/{postId}/Delete")]
-    [HttpPut]
+    [HttpDelete]
     public ActionResult<PostViewModel> DeletePost(int communityId, int postId)
     {
         PostViewModel postViewModel = _communitiesService.DeletePost(postId, this.GetUserIdFromClaims());
+        return Ok(postViewModel);
+    }
+    
+    [Route("Posts/{postId}/GetUsersWhoLike")]
+    [HttpGet]
+    public ActionResult<IEnumerable<UserPreviewModel>> GetUsersWhoLikePost(int postId)
+    {
+        IEnumerable<UserPreviewModel> userPreviewModels = _communitiesService.GetUsersWhoLikePost(postId);
+        return Ok(userPreviewModels);
+    }
+
+    [Route("Posts/{postId}/Like")]
+    [HttpPost]
+    public ActionResult<PostViewModel> LikePost(int postId)
+    {
+        PostViewModel postViewModel = _communitiesService.LikePost(postId, this.GetUserIdFromClaims());
+        return Ok(postViewModel);
+    }
+
+    [Route("Posts/{postId}/DeleteLike")]
+    [HttpDelete]
+    public ActionResult<PostViewModel> DeleteLikeFromPost(int postId)
+    {
+        PostViewModel postViewModel = _communitiesService.DeleteLikeFromPost(postId, this.GetUserIdFromClaims());
         return Ok(postViewModel);
     }
 
@@ -152,12 +175,12 @@ public class CommunitiesController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<CommentViewModel>> GetPostComments(int postId)
     {
-        IEnumerable<CommentViewModel> commentViewModels = _communitiesService.GetPostComments(postId);
+        IEnumerable<CommentViewModel> commentViewModels = _communitiesService.GetPostComments(postId, this.GetUserIdFromClaims());
         return Ok(commentViewModels);
     }
 
     [Route("Posts/{postId}/Comments/Add")]
-    [HttpPut]
+    [HttpPost]
     public ActionResult<CommentViewModel> AddComment(CommentAddModel commentAddModel, int postId)
     {
         if (!ModelState.IsValid)
@@ -183,35 +206,34 @@ public class CommunitiesController : ControllerBase
     }
     
     [Route("Posts/Comments/{commentId}/Delete")]
-    [HttpPut]
+    [HttpDelete]
     public ActionResult<CommentViewModel> DeleteComment(int commentId)
     {
         CommentViewModel commentViewModels = _communitiesService.DeleteComment(commentId, this.GetUserIdFromClaims());
         return Ok(commentViewModels);
     }
-
-    [Route("Posts/{postId}/GetUsersWhoLike")]
+    
+    [Route("Posts/Comments/{commentId}/GetUsersWhoLike")]
     [HttpGet]
-    public ActionResult<IEnumerable<UserPreviewModel>> GetUsersWhoLikePost(int postId)
+    public ActionResult<IEnumerable<UserPreviewModel>> GetUsersWhoLikeComment(int commentId)
     {
-        IEnumerable<UserPreviewModel> userPreviewModels = _communitiesService.GetUsersWhoLikePost(postId);
+        IEnumerable<UserPreviewModel> userPreviewModels = _communitiesService.GetUsersWhoLikeComment(commentId);
         return Ok(userPreviewModels);
     }
 
-    [Route("Posts/{postId}/Like")]
-    [HttpPut]
-    public ActionResult<PostViewModel> LikePost(int postId)
+    [Route("Posts/Comments/{commentId}/Like")]
+    [HttpPost]
+    public ActionResult<CommentViewModel> LikeComment(int commentId)
     {
-        PostViewModel postViewModel = _communitiesService.LikePost(postId, this.GetUserIdFromClaims());
-        return Ok(postViewModel);
+        CommentViewModel commentViewModel = _communitiesService.LikeComment(commentId, this.GetUserIdFromClaims());
+        return Ok(commentViewModel);
     }
-
-    [Route("Posts/{postId}/DeleteLike")]
-    [HttpPut]
-    public ActionResult<PostViewModel> DeleteLikeFromPost(int postId)
+    
+    [Route("Posts/Comments/{commentId}/DeleteLike")]
+    [HttpDelete]
+    public ActionResult<CommentViewModel> DeleteLikeFromComment(int commentId)
     {
-        PostViewModel postViewModel = _communitiesService.DeleteLikeFromPost(postId, this.GetUserIdFromClaims());
-        return Ok(postViewModel);
+        CommentViewModel commentViewModel = _communitiesService.DeleteLikeFromComment(commentId, this.GetUserIdFromClaims());
+        return Ok(commentViewModel);
     }
-
 }

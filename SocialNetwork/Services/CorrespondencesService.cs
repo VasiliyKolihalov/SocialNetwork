@@ -3,7 +3,7 @@ using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Correspondences;
 using SocialNetwork.Models.Messages;
 using SocialNetwork.Models.Users;
-using SocialNetwork.Repository;
+using SocialNetwork.Repositories;
 
 namespace SocialNetwork.Services;
 

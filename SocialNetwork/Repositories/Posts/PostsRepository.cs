@@ -2,10 +2,9 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 using SocialNetwork.Exceptions;
-using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.Posts;
 
-namespace SocialNetwork.Repository;
+namespace SocialNetwork.Repositories.Posts;
 
 public class PostsRepository : IPostsRepository
 {
@@ -34,36 +33,6 @@ public class PostsRepository : IPostsRepository
         }
     }
 
-    public IEnumerable<Post> GetPostsFromCommunity(int communityId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            IEnumerable<Post> posts = connection.Query<Post>("SELECT * FROM Posts WHERE CommunityId = @communityId", new {communityId});
-
-            string commentsCountQuery = "SELECT COUNT(*) FROM Comments WHERE PostId = @PostId";
-            string likesCountQuery = "SELECT COUNT(*) FROM PostsLikes WHERE PostId = @PostId";
-            foreach (var post in posts)
-            {
-                post.CommentsCount = connection.QuerySingle<int>(commentsCountQuery, new {PostId = post.Id});
-                post.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {PostId = post.Id});
-            }
-
-            return posts;
-        }
-    }
-
-    public bool IsUserLikePost(int userId, int postId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string sqlQuery = "SELECT * FROM PostsLikes WHERE UserId = @userId AND PostId = postId";
-            object userLike = connection.QueryFirstOrDefault<object>(sqlQuery, new {userId, postId});
-
-            return userLike != null;
-        }
-    }
-
-
     public Post Get(int id)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -75,7 +44,7 @@ public class PostsRepository : IPostsRepository
 
             string commentsCountQuery = "SELECT COUNT(*) FROM Comments WHERE PostId = @PostId";
             string likesCountQuery = "SELECT COUNT(*) FROM PostsLikes WHERE PostId = @PostId";
-            
+
             post.CommentsCount = connection.QuerySingle<int>(commentsCountQuery, new {PostId = post.Id});
             post.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {PostId = post.Id});
 
@@ -95,14 +64,6 @@ public class PostsRepository : IPostsRepository
         }
     }
 
-    public void AddLikeToPost(int userId, int postId)
-    {
-        using (IDbConnection connection = new SqlConnection(_connectionString))
-        {
-            string sqlQuery = "INSERT INTO PostsLikes VALUES (@userId, @postId)";
-            connection.Query(sqlQuery, new {userId, postId});
-        }
-    }
 
     public void Update(Post item)
     {
@@ -121,12 +82,51 @@ public class PostsRepository : IPostsRepository
         }
     }
 
-    public void DeleteLikeFromPost(int userId, int postId)
+    public IEnumerable<Post> GetPostsFromCommunity(int communityId)
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
-            string sqlQuery = "DELETE PostsLikes WHERE UserId = @userId AND PostId = @postId";
-            connection.Query(sqlQuery, new {userId, postId});
+            IEnumerable<Post> posts = connection.Query<Post>("SELECT * FROM Posts WHERE CommunityId = @communityId",
+                new {communityId});
+
+            string commentsCountQuery = "SELECT COUNT(*) FROM Comments WHERE PostId = @PostId";
+            string likesCountQuery = "SELECT COUNT(*) FROM PostsLikes WHERE PostId = @PostId";
+            foreach (var post in posts)
+            {
+                post.CommentsCount = connection.QuerySingle<int>(commentsCountQuery, new {PostId = post.Id});
+                post.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {PostId = post.Id});
+            }
+
+            return posts;
+        }
+    }
+
+    public bool IsUserLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "SELECT * FROM PostsLikes WHERE UserId = @userId AND PostId = @contentId";
+            object userLike = connection.QueryFirstOrDefault<object>(sqlQuery, new {userId, contentId});
+
+            return userLike != null;
+        }
+    }
+
+    public void AddLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "INSERT INTO PostsLikes VALUES (@userId, @contentId)";
+            connection.Query(sqlQuery, new {userId, contentId});
+        }
+    }
+
+    public void DeleteLike(int userId, int contentId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "DELETE PostsLikes WHERE UserId = @userId AND PostId = @contentId";
+            connection.Query(sqlQuery, new {userId, contentId});
         }
     }
 }
