@@ -38,6 +38,10 @@ public class ErrorHandlerMiddleware
                 case UnauthorizedException:
                     response.StatusCode = (int) HttpStatusCode.Unauthorized;
                     break;
+                
+                case ForbiddenException:
+                    response.StatusCode = (int) HttpStatusCode.Forbidden;
+                    break;
 
                 default:
                     response.StatusCode = (int) HttpStatusCode.InternalServerError;

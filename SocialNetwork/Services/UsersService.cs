@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using SocialNetwork.Constants;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Images;
+using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Repositories;
 
@@ -44,12 +46,15 @@ public class UsersService
         });
         var mapper = new Mapper(mapperConfig);
 
+        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
+        if (user.IsFreeze)
+            return userViewModel;
+
         IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
         IEnumerable<User> friends = _applicationContext.Users.GetUserFriends(userId);
         Image? avatar = _applicationContext.Images.GetUserAvatar(userId);
         IEnumerable<Image> photos = _applicationContext.Images.GetUserPhotos(userId);
 
-        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
         userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
         userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
         userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
@@ -85,16 +90,12 @@ public class UsersService
 
         User recipientUser = _applicationContext.Users.Get(recipientId);
 
-        IEnumerable<FriendRequest> userRecipientFriendRequests =
-            _applicationContext.FriendRequests.GetUserFriendsRequests(recipientId);
-        if (userRecipientFriendRequests.Any(x =>
-                x.RecipientId == recipientId && x.Sender.Id == senderId))
+        IEnumerable<FriendRequest> userRecipientFriendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(recipientId);
+        if (userRecipientFriendRequests.Any(x => x.RecipientId == recipientId && x.Sender.Id == senderId))
             throw new BadRequestException("Request has already been sent");
 
-        IEnumerable<User> userRecipientFriends =
-            _applicationContext.Users.GetUserFriends(recipientId);
-        if (userRecipientFriends.Any(x => x.Id == senderId))
-            throw new BadRequestException("User is already friends");
+        IEnumerable<User> userRecipientFriends = _applicationContext.Users.GetUserFriends(recipientId);
+        if (userRecipientFriends.Any(x => x.Id == senderId)) throw new BadRequestException("User is already friends");
 
         var mapperConfig = new MapperConfiguration(cfg =>
         {
@@ -108,6 +109,7 @@ public class UsersService
         User senderUser = _applicationContext.Users.Get(senderId);
         friendRequest.Sender = senderUser;
         friendRequest.RecipientId = recipientId;
+        
         _applicationContext.FriendRequests.Add(friendRequest);
 
         UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(recipientUser);
@@ -134,9 +136,13 @@ public class UsersService
         return userPreviewModel;
     }
 
-    public UserPreviewModel Update(UserEditModel userEditModel)
+    public UserPreviewModel Update(UserEditModel userEditModel, int userId)
     {
         _applicationContext.Users.Get(userEditModel.Id);
+
+        IEnumerable<Role> usersRoles = _applicationContext.Roles.GetFromUserId(userId);
+        if (userEditModel.Id != userId && !usersRoles.Any(x => x.Name == RolesNameConstants.AdminRole))
+            throw new ForbiddenException("User is not admin");
 
         var mapperConfig = new MapperConfiguration(cfg =>
         {
@@ -152,11 +158,33 @@ public class UsersService
         return userPreviewModel;
     }
 
-    public UserPreviewModel Delete(int userId)
+    public UserPreviewModel FreezeUser(int userId)
     {
         User user = _applicationContext.Users.Get(userId);
-        _applicationContext.Users.Delete(userId);
+        
+        if (user.IsFreeze)
+            throw new BadRequestException("User is already freeze");
+        
+        _applicationContext.Users.FreezeUser(userId);
+        user.IsFreeze = true;
 
+        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
+        var mapper = new Mapper(mapperConfig);
+
+        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(user);
+        return userPreviewModel;
+    }
+
+    public UserPreviewModel UnfreezeUser(int userId)
+    {
+        User user = _applicationContext.Users.Get(userId);
+        
+        if (!user.IsFreeze)
+            throw new BadRequestException("User is not freeze");
+        
+        _applicationContext.Users.UnfreezeUser(userId);
+        user.IsFreeze = false;
+        
         var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
         var mapper = new Mapper(mapperConfig);
 

@@ -21,14 +21,6 @@ public class AccountController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet]
-    public ActionResult<UserViewModel> Get()
-    {
-        UserViewModel userViewModel = _accountService.Get(this.GetUserIdFromClaims());
-        return Ok(userViewModel);
-    }
-    
-    [Authorize]
     [Route("Friends/GetRequests")]
     [HttpGet]
     public ActionResult<IEnumerable<FriendsRequestViewModel>> GetFriendRequests()
@@ -78,7 +70,7 @@ public class AccountController : ControllerBase
 
     [Route("Register")]
     [HttpPost]
-    public ActionResult Register(RegisterUserModel registerUserModel)
+    public ActionResult<string>  Register(RegisterUserModel registerUserModel)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -89,7 +81,7 @@ public class AccountController : ControllerBase
 
     [Route("Login")]
     [HttpPost]
-    public ActionResult Login(LoginUserModel loginUserModel)
+    public ActionResult<string>  Login(LoginUserModel loginUserModel)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -97,5 +89,16 @@ public class AccountController : ControllerBase
         string token = _accountService.Login(loginUserModel);
         return Ok(new {Token = token});
     }
-    
+
+    [Authorize]
+    [Route("ChangePassword")]
+    [HttpPut]
+    public ActionResult<string> ChangePassword(ChangeUserPasswordModel changeModel)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
+        string token = _accountService.ChangePassword(changeModel);
+        return Ok(new {Token = token});
+    }
 }
