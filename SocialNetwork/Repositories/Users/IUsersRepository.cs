@@ -11,4 +11,9 @@ public interface IUsersRepository : IRepository<User, int>
 
     public IEnumerable<User> GetUsersWhoLikePost(int postId);
     public IEnumerable<User> GetUsersWhoLikeComment(int commentId);
+
+    public void FreezeUser(int userId);
+    public void UnfreezeUser(int userId);
+
+    public void ChangePasswordHash(int userId, string passwordHash);
 }

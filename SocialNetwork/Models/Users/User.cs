@@ -7,4 +7,5 @@ public class User
     public string SecondName { get; set; }
     public string Email { get; set; }
     public string PasswordHash { get; set; }
+    public bool IsFreeze { get; set; }
 }

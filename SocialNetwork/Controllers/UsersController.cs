@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialNetwork.Constants;
 using SocialNetwork.Extensions;
@@ -15,19 +14,19 @@ namespace SocialNetwork.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UsersService _usersService;
-    
+
     public UsersController(UsersService usersService)
     {
         _usersService = usersService;
     }
-    
+
     [HttpGet]
     public ActionResult<IEnumerable<UserPreviewModel>> GetAll()
     {
         IEnumerable<UserPreviewModel> userViewModels = _usersService.GetAll();
         return Ok(userViewModels);
     }
-    
+
     [Route("{userId}")]
     [HttpGet]
     public ActionResult<UserViewModel> Get(int userId)
@@ -49,7 +48,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     public ActionResult<UserPreviewModel> SendFriendRequest(FriendRequestAddModel friendRequestAddModel, int userId)
     {
-        UserPreviewModel userPreviewModel = _usersService.SendFriendRequest(friendRequestAddModel,userId, this.GetUserIdFromClaims());
+        UserPreviewModel userPreviewModel = _usersService.SendFriendRequest(friendRequestAddModel, userId, this.GetUserIdFromClaims());
         return Ok(userPreviewModel);
     }
 
@@ -62,22 +61,31 @@ public class UsersController : ControllerBase
         return Ok(userPreviewModel);
     }
 
-    [Authorize(Roles = RolesNameConstants.AdminRole)]
     [HttpPut]
     public ActionResult<UserPreviewModel> Put(UserEditModel userEditModel)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
-        UserPreviewModel userPreviewModel = _usersService.Update(userEditModel);
+
+        UserPreviewModel userPreviewModel = _usersService.Update(userEditModel, this.GetUserIdFromClaims());
         return Ok(userPreviewModel);
     }
 
     [Authorize(Roles = RolesNameConstants.AdminRole)]
-    [HttpDelete("{userId}")]
-    public ActionResult<UserPreviewModel> Delete(int userId)
+    [Route("{userId}/Freeze")]
+    [HttpPost]
+    public ActionResult<UserPreviewModel> FreezeUser(int userId)
     {
-        UserPreviewModel userPreviewModel = _usersService.Delete(userId);
+        UserPreviewModel userPreviewModel = _usersService.FreezeUser(userId);
+        return Ok(userPreviewModel);
+    }
+    
+    [Authorize(Roles = RolesNameConstants.AdminRole)]
+    [Route("{userId}/Unfreeze")]
+    [HttpPost]
+    public ActionResult<UserPreviewModel> UnfreezeUser(int userId)
+    {
+        UserPreviewModel userPreviewModel = _usersService.UnfreezeUser(userId);
         return Ok(userPreviewModel);
     }
 }

@@ -26,35 +26,6 @@ public class AccountService
         _jwtAuthOptions = jwtAuthOptions;
     }
 
-    public UserViewModel Get(int userId)
-    {
-        User user = _applicationContext.Users.Get(userId);
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<User, UserViewModel>();
-
-            cfg.CreateMap<User, UserPreviewModel>();
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
-        IEnumerable<User> friends = _applicationContext.Users.GetUserFriends(userId);
-        Image? avatar = _applicationContext.Images.GetUserAvatar(userId);
-        IEnumerable<Image> photos = _applicationContext.Images.GetUserPhotos(userId);
-
-        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
-        userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
-        userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
-        userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
-        userViewModel.Avatar = avatar == null ? null : mapper.Map<Image, ImageViewModel>(avatar);
-        
-        return userViewModel;
-    }
-
     public IEnumerable<FriendsRequestViewModel> GetFriendRequests(int userId)
     {
         IEnumerable<FriendRequest> friendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(userId);
@@ -121,10 +92,10 @@ public class AccountService
     public ImageViewModel DeletePhotoFromAccount(int imageId, int userId)
     {
         Image image = _applicationContext.Images.Get(imageId);
-        
+
         if (image.UserId != userId)
             throw new NotFoundException("Image not found");
-        
+
         _applicationContext.Images.DeletePhotoFromUser(userId, imageId);
         _applicationContext.Images.Delete(imageId);
 
@@ -142,12 +113,12 @@ public class AccountService
     public ImageViewModel ChangeAvatar(int imageId, int userId)
     {
         Image image = _applicationContext.Images.Get(imageId);
-        
-        if(image.UserId != userId)
+
+        if (image.UserId != userId)
             throw new NotFoundException("Image not found");
-        
+
         _applicationContext.Images.UpdateUserAvatar(imageId, userId);
-        
+
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
@@ -174,19 +145,34 @@ public class AccountService
         {
             throw new BadRequestException("User with the same email already exists");
         }
-        
+
         _applicationContext.Images.SetDefaultValueForUserAvatar(user.Id);
-        
+
         return GenerateJwt(user);
     }
 
     public string Login(LoginUserModel loginUserModel)
     {
         User user = _applicationContext.Users.GetFromEmail(loginUserModel.Email);
+        
         if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, loginUserModel.Password))
-        {
             throw new BadRequestException("Incorrect login or password");
-        }
+        
+        if (user.IsFreeze)
+            throw new ForbiddenException("User is freeze");
+
+        return GenerateJwt(user);
+    }
+
+    public string ChangePassword(ChangeUserPasswordModel changeModel)
+    {
+        User user = _applicationContext.Users.GetFromEmail(changeModel.Email);
+        
+        if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, changeModel.OldPassword))
+            throw new BadRequestException("Incorrect login or password");
+
+        user.PasswordHash = PasswordHasher.HashPassword(changeModel.NewPassword);
+        _applicationContext.Users.ChangePasswordHash(user.Id, user.PasswordHash);
 
         return GenerateJwt(user);
     }

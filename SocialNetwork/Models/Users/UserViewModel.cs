@@ -9,7 +9,8 @@ public class UserViewModel
     public string FirstName { get; set; }
     public string SecondName { get; set; }
     public string Email { get; set; }
-    
+    public bool IsFreeze { get; set; }
+
     public ImageViewModel? Avatar { get; set; }
     public List<ImageViewModel> Photos { get; set; }
     public List<CommunityPreviewModel> Communities { get; set; }

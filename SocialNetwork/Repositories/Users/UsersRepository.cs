@@ -41,7 +41,7 @@ public class UsersRepository : IUsersRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             var sqlQuery =
-                "INSERT INTO Users VALUES (@FirstName, @SecondName, @Email, @PasswordHash) SELECT @@IDENTITY";
+                "INSERT INTO Users VALUES (@FirstName, @SecondName, @Email, @PasswordHash, DEFAULT) SELECT @@IDENTITY";
             int userId = connection.QuerySingle<int>(sqlQuery, item);
             item.Id = userId;
         }
@@ -133,6 +133,33 @@ public class UsersRepository : IUsersRepository
 
             IEnumerable<User> users = connection.Query<User>(sqlQuery, new {commentId});
             return users;
+        }
+    }
+
+    public void FreezeUser(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
+            connection.Query(sqlQuery, new {Value = true, Id = userId});
+        }
+    }
+
+    public void UnfreezeUser(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
+            connection.Query(sqlQuery, new {Value = false, Id = userId});
+        }
+    }
+
+    public void ChangePasswordHash(int userId, string passwordHash)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            var sqlQuery = "UPDATE Users SET PasswordHash = @passwordHash WHERE Id = @userId";
+            connection.Query(sqlQuery, new {passwordHash, userId});
         }
     }
 }
