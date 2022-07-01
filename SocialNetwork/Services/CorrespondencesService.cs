@@ -10,26 +10,20 @@ namespace SocialNetwork.Services;
 public class CorrespondencesService
 {
     private readonly IApplicationContext _applicationContext;
+    private readonly IMapper _mapper;
 
-    public CorrespondencesService(IApplicationContext applicationContext)
+    public CorrespondencesService(IApplicationContext applicationContext, IMapper mapper)
     {
         _applicationContext = applicationContext;
+        _mapper = mapper;
     }
 
     public IEnumerable<CorrespondencePreviewModel> GetAll(int userId)
     {
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
         IEnumerable<Correspondence> correspondences =
             _applicationContext.Correspondences.GetUserCorrespondences(userId);
 
-        IEnumerable<CorrespondencePreviewModel> correspondenceViewModels =
-            mapper.Map<IEnumerable<Correspondence>, IEnumerable<CorrespondencePreviewModel>>(correspondences);
+        IEnumerable<CorrespondencePreviewModel> correspondenceViewModels = _mapper.Map<IEnumerable<CorrespondencePreviewModel>>(correspondences);
         return correspondenceViewModels;
     }
 
@@ -39,21 +33,10 @@ public class CorrespondencesService
 
         if (!correspondence.Users.Any(x => x.Id == userId))
             throw new NotFoundException("Correspondence not found");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Correspondence, CorrespondenceViewModel>();
-            cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        CorrespondenceViewModel correspondencePreviewModel =
-            mapper.Map<Correspondence, CorrespondenceViewModel>(correspondence);
-
-        correspondencePreviewModel.Messages =
-            mapper.Map<IEnumerable<Message>, List<MessageViewModel>>(
-                _applicationContext.Messages.GetFromCorrespondence(correspondenceId));
+        
+        CorrespondenceViewModel correspondencePreviewModel = _mapper.Map<CorrespondenceViewModel>(correspondence);
+        IEnumerable<Message> messages = _applicationContext.Messages.GetFromCorrespondence(correspondenceId);
+        correspondencePreviewModel.Messages = _mapper.Map<List<MessageViewModel>>(messages);
 
         return correspondencePreviewModel;
     }
@@ -72,30 +55,19 @@ public class CorrespondencesService
         }
 
         participants.Add(sender);
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CorrespondenceAddModel, Correspondence>();
-            cfg.CreateMap<MessageAddModel, Message>();
-
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Correspondence correspondence = mapper.Map<CorrespondenceAddModel, Correspondence>(correspondenceAddModel);
+        
+        Correspondence correspondence = _mapper.Map<Correspondence>(correspondenceAddModel);
         correspondence.Admin = sender;
         correspondence.Users = participants;
 
         _applicationContext.Correspondences.Add(correspondence);
 
-        Message message = mapper.Map<MessageAddModel, Message>(correspondenceAddModel.MessageAddModel);
+        Message message = _mapper.Map<Message>(correspondenceAddModel.MessageAddModel);
         message.Sender = sender;
         message.CorrespondenceId = correspondence.Id;
         _applicationContext.Messages.Add(message);
 
-        CorrespondencePreviewModel correspondencePreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(correspondence);
+        CorrespondencePreviewModel correspondencePreviewModel = _mapper.Map<CorrespondencePreviewModel>(correspondence);
         return correspondencePreviewModel;
     }
 
@@ -112,16 +84,8 @@ public class CorrespondencesService
 
         _applicationContext.Correspondences.AddUserToCorrespondence(userId, correspondenceId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
         Correspondence updatedCorrespondence = _applicationContext.Correspondences.Get(correspondenceId);
-        CorrespondencePreviewModel communityPreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(updatedCorrespondence);
+        CorrespondencePreviewModel communityPreviewModel = _mapper.Map<CorrespondencePreviewModel>(updatedCorrespondence);
         return communityPreviewModel;
     }
 
@@ -138,16 +102,8 @@ public class CorrespondencesService
 
         _applicationContext.Correspondences.DeleteUserFromCorrespondence(userId, correspondenceId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
         Correspondence updatedCorrespondence = _applicationContext.Correspondences.Get(correspondenceId);
-        CorrespondencePreviewModel communityPreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(updatedCorrespondence);
+        CorrespondencePreviewModel communityPreviewModel = _mapper.Map<CorrespondencePreviewModel>(updatedCorrespondence);
         return communityPreviewModel;
     }
 
@@ -157,23 +113,12 @@ public class CorrespondencesService
 
         if (correspondence.Admin.Id != senderId)
             throw new BadRequestException("User is not correspondence admin");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CorrespondenceEditModel, Correspondence>();
-
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Correspondence updatedCorrespondence =
-            mapper.Map<CorrespondenceEditModel, Correspondence>(correspondenceEditModel);
+        
+        Correspondence updatedCorrespondence = _mapper.Map<Correspondence>(correspondenceEditModel);
         _applicationContext.Correspondences.Update(updatedCorrespondence);
 
-        CorrespondencePreviewModel correspondencePreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(updatedCorrespondence);
-        correspondencePreviewModel.Users = mapper.Map<List<User>, List<UserPreviewModel>>(correspondence.Users);
+        CorrespondencePreviewModel correspondencePreviewModel = _mapper.Map<CorrespondencePreviewModel>(updatedCorrespondence);
+        correspondencePreviewModel.Users = _mapper.Map<List<UserPreviewModel>>(correspondence.Users);
         return correspondencePreviewModel;
     }
 
@@ -185,16 +130,8 @@ public class CorrespondencesService
             throw new BadRequestException("User is not correspondence admin");
 
         _applicationContext.Correspondences.Delete(correspondenceId);
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        CorrespondencePreviewModel communityPreviewModel =
-            mapper.Map<Correspondence, CorrespondencePreviewModel>(correspondence);
+        
+        CorrespondencePreviewModel communityPreviewModel = _mapper.Map<CorrespondencePreviewModel>(correspondence);
         return communityPreviewModel;
     }
 
@@ -205,22 +142,13 @@ public class CorrespondencesService
 
         if (!correspondence.Users.Any(x => x.Id == senderId))
             throw new NotFoundException("Correspondence not found");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<MessageAddModel, Message>();
-
-            cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Message message = mapper.Map<MessageAddModel, Message>(messageAddModel);
+        
+        Message message = _mapper.Map<Message>(messageAddModel);
         message.Sender = sender;
         message.CorrespondenceId = correspondenceId;
         _applicationContext.Messages.Add(message);
 
-        MessageViewModel messageViewModel = mapper.Map<Message, MessageViewModel>(message);
+        MessageViewModel messageViewModel = _mapper.Map<MessageViewModel>(message);
         return messageViewModel;
     }
 
@@ -230,23 +158,14 @@ public class CorrespondencesService
 
         if (message.Sender.Id != senderId)
             throw new NotFoundException("Message not found");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<MessageEditModel, Message>();
-
-            cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Message updatedMessage = mapper.Map<MessageEditModel, Message>(messageEditModel);
+        
+        Message updatedMessage = _mapper.Map<Message>(messageEditModel);
         updatedMessage.IsEdited = true;
         _applicationContext.Messages.Update(updatedMessage);
 
-        MessageViewModel messageViewModel = mapper.Map<Message, MessageViewModel>(updatedMessage);
+        MessageViewModel messageViewModel = _mapper.Map<MessageViewModel>(updatedMessage);
         messageViewModel.DateTime = message.DateTime;
-        messageViewModel.Sender = mapper.Map<User, UserPreviewModel>(message.Sender);
+        messageViewModel.Sender = _mapper.Map<UserPreviewModel>(message.Sender);
         return messageViewModel;
     }
 
@@ -259,14 +178,7 @@ public class CorrespondencesService
 
         _applicationContext.Messages.Delete(messageId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Message, MessageViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        MessageViewModel messageViewModel = mapper.Map<Message, MessageViewModel>(message);
+        MessageViewModel messageViewModel = _mapper.Map<MessageViewModel>(message);
         return messageViewModel;
     }
 }

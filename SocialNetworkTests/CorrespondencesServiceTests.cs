@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Xunit;
 using Moq;
 using SocialNetwork.Exceptions;
@@ -26,7 +27,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences.GetUserCorrespondences(It.IsAny<int>()))
             .Returns(testCorrespondences);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         IEnumerable<CorrespondencePreviewModel> result = correspondencesService.GetAll(It.IsAny<int>());
 
@@ -48,7 +49,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Messages.GetFromCorrespondence(It.IsAny<int>()))
             .Returns(testMessages);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         CorrespondenceViewModel result = correspondencesService.GetWithMessages(It.IsAny<int>(), user.Id);
         
@@ -66,7 +67,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>()))
             .Returns(testCorrespondence);
        
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () => correspondencesService.GetWithMessages(It.IsAny<int>(), It.IsAny<int>());
         
@@ -95,7 +96,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences).Returns(Mock.Of<ICorrespondencesRepository>());
         applicationContextMock.Setup(x => x.Messages).Returns(Mock.Of<IMessagesRepository>());
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         CorrespondencePreviewModel result = correspondencesService.StartCorrespondence(correspondenceAddModel, testSenderUser.Id);
         
@@ -122,7 +123,7 @@ public class CorrespondencesServiceTests
                 .Returns(testUser);
         }
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () => correspondencesService.StartCorrespondence(correspondenceAddModel, It.IsAny<int>());
 
@@ -142,7 +143,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences).Returns(Mock.Of<ICorrespondencesRepository>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         CorrespondencePreviewModel result = correspondencesService.AddUserToCorrespondence(testCorrespondence.Id, testUser.Id, testSenderUser.Id);
         
@@ -161,7 +162,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(It.IsAny<User>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () =>correspondencesService.AddUserToCorrespondence(testCorrespondence.Id, It.IsAny<int>(), testSenderUser.Id);
 
@@ -181,7 +182,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(It.IsAny<User>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () =>correspondencesService.AddUserToCorrespondence(testCorrespondence.Id, testUser.Id, testSenderUser.Id);
 
@@ -202,7 +203,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences).Returns(Mock.Of<ICorrespondencesRepository>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         CorrespondencePreviewModel result = correspondencesService.DeleteUserFromCorrespondence(testCorrespondence.Id, testUser.Id, testSenderUser.Id);
         
@@ -221,7 +222,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(It.IsAny<User>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () =>correspondencesService.DeleteUserFromCorrespondence(testCorrespondence.Id, It.IsAny<int>(), testSenderUser.Id);
 
@@ -240,7 +241,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(It.IsAny<User>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action resultAction = () =>correspondencesService.DeleteUserFromCorrespondence(testCorrespondence.Id, testUser.Id, testSenderUser.Id);
 
@@ -261,7 +262,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences).Returns(Mock.Of<ICorrespondencesRepository>());
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         CorrespondencePreviewModel result = correspondencesService.Edit(correspondenceEditModel, testSenderUser.Id);
         
@@ -283,7 +284,7 @@ public class CorrespondencesServiceTests
         var applicationContextMock = new Mock<IApplicationContext>();
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action result = () => correspondencesService.Edit(correspondenceEditModel, testSenderUser.Id);
 
@@ -300,7 +301,7 @@ public class CorrespondencesServiceTests
         var applicationContextMock = new Mock<IApplicationContext>();
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
         
         CorrespondencePreviewModel result = correspondencesService.Delete(testCorrespondence.Id, testSenderUser.Id);
         
@@ -318,7 +319,7 @@ public class CorrespondencesServiceTests
         var applicationContextMock = new Mock<IApplicationContext>();
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
 
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
         
         Action result = () => correspondencesService.Delete(testCorrespondence.Id, testSenderUser.Id);
         
@@ -338,7 +339,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(testSenderUser);
         applicationContextMock.Setup(x => x.Messages).Returns(Mock.Of<IMessagesRepository>());
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         MessageViewModel result = correspondencesService.SendMessage(messageAddModel, testCorrespondence.Id, testSenderUser.Id);
         
@@ -356,7 +357,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Correspondences.Get(It.IsAny<int>())).Returns(testCorrespondence);
         applicationContextMock.Setup(x => x.Users.Get(It.IsAny<int>())).Returns(testSenderUser);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action result = () =>correspondencesService.SendMessage(It.IsAny<MessageAddModel>(), testCorrespondence.Id, testSenderUser.Id);
         
@@ -375,7 +376,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Messages).Returns(Mock.Of<IMessagesRepository>());
         applicationContextMock.Setup(x => x.Messages.Get(It.IsAny<long>())).Returns(testMessage);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
         
         MessageViewModel result = correspondencesService.EditMessage(messageEditModel, testSenderUser.Id);
         
@@ -396,7 +397,7 @@ public class CorrespondencesServiceTests
         var applicationContextMock = new Mock<IApplicationContext>();
         applicationContextMock.Setup(x => x.Messages.Get(It.IsAny<long>())).Returns(testMessage);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
         
         Action result = () => correspondencesService.EditMessage(messageEditModel, testSenderUser.Id);
         
@@ -414,7 +415,7 @@ public class CorrespondencesServiceTests
         applicationContextMock.Setup(x => x.Messages).Returns(Mock.Of<IMessagesRepository>());
         applicationContextMock.Setup(x => x.Messages.Get(It.IsAny<long>())).Returns(testMessage);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         MessageViewModel result = correspondencesService.DeleteMessage(testMessage.Id, testSenderUser.Id);
         
@@ -431,7 +432,7 @@ public class CorrespondencesServiceTests
         var applicationContextMock = new Mock<IApplicationContext>();
         applicationContextMock.Setup(x => x.Messages.Get(It.IsAny<long>())).Returns(testMessage);
         
-        var correspondencesService = new CorrespondencesService(applicationContextMock.Object);
+        var correspondencesService = new CorrespondencesService(applicationContextMock.Object, GetMapper());
 
         Action result = () => correspondencesService.DeleteMessage(testMessage.Id, testSenderUser.Id);
         
@@ -499,5 +500,24 @@ public class CorrespondencesServiceTests
     private static MessageAddModel GetTestMessageAddModel()
     {
         return new MessageAddModel() {Text = "Message1"};
+    }
+    
+    private static IMapper GetMapper()
+    {
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<Correspondence, CorrespondencePreviewModel>();
+            cfg.CreateMap<Correspondence, CorrespondenceViewModel>();
+            cfg.CreateMap<CorrespondenceAddModel, Correspondence>();
+            cfg.CreateMap<CorrespondenceEditModel, Correspondence>();
+            
+            cfg.CreateMap<Message, MessageViewModel>();
+            cfg.CreateMap<MessageAddModel, Message>();
+            cfg.CreateMap<MessageEditModel, Message>();
+
+            cfg.CreateMap<User, UserPreviewModel>();
+        });
+        var mapper = new Mapper(mapperConfig);
+        return mapper;
     }
 }

@@ -58,6 +58,9 @@ builder.Services.AddTransient<CorrespondencesService>();
 builder.Services.AddTransient<RolesService>();
 builder.Services.AddTransient<CommunitiesService>();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
+
 #endregion
 
 var app = builder.Build();

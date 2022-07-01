@@ -8,45 +8,36 @@ namespace SocialNetwork.Services;
 public class RolesService
 {
     private readonly IApplicationContext _applicationContext;
+    private readonly IMapper _mapper;
 
-    public RolesService(IApplicationContext applicationContext)
+    public RolesService(IApplicationContext applicationContext, IMapper mapper)
     {
         _applicationContext = applicationContext;
+        _mapper = mapper;
     }
 
     public IEnumerable<RoleViewModel> GetAll()
     {
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Role, RoleViewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        return mapper.Map<IEnumerable<Role>, IEnumerable<RoleViewModel>>(_applicationContext.Roles.GetAll());
+        IEnumerable<Role> roles = _applicationContext.Roles.GetAll();
+        
+        return _mapper.Map<IEnumerable<RoleViewModel>>(roles);
     }
 
     public RoleViewModel Get(int id)
     {
         Role role = _applicationContext.Roles.Get(id);
-
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Role, RoleViewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        return mapper.Map<Role, RoleViewModel>(role);
+        
+        return _mapper.Map<RoleViewModel>(role);
     }
 
     public RoleViewModel Create(RoleAddModel roleAddModel)
     {
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<RoleAddModel, Role>();
-            cfg.CreateMap<Role, RoleViewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
         try
         {
-            Role role = mapper.Map<RoleAddModel, Role>(roleAddModel);
+            Role role = _mapper.Map<Role>(roleAddModel);
             _applicationContext.Roles.Add(role);
             
-            return mapper.Map<Role, RoleViewModel>(role);
+            return _mapper.Map<RoleViewModel>(role);
         }
         catch
         {
@@ -57,18 +48,11 @@ public class RolesService
     public RoleViewModel Update(RoleEditModel roleEditModel)
     {
         _applicationContext.Roles.Get(roleEditModel.Id);
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<RoleEditModel, Role>();
-            cfg.CreateMap<Role, RoleViewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
 
-        Role role = mapper.Map<RoleEditModel, Role>(roleEditModel);
+        Role role = _mapper.Map<Role>(roleEditModel);
         _applicationContext.Roles.Update(role);
 
-        return mapper.Map<Role, RoleViewModel>(role);
+        return _mapper.Map<RoleViewModel>(role);
     }
 
     public RoleViewModel Delete(int roleId)
@@ -77,9 +61,6 @@ public class RolesService
         
         _applicationContext.Roles.Delete(roleId);
         
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Role, RoleViewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        return mapper.Map<Role, RoleViewModel>(role);
+        return _mapper.Map<RoleViewModel>(role);
     }
 }

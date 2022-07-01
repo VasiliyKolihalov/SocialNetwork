@@ -13,20 +13,19 @@ namespace SocialNetwork.Services;
 public class UsersService
 {
     private readonly IApplicationContext _applicationContext;
+    private readonly IMapper _mapper;
 
-    public UsersService(IApplicationContext applicationContext)
+    public UsersService(IApplicationContext applicationContext, IMapper mapper)
     {
         _applicationContext = applicationContext;
+        _mapper = mapper;
     }
 
     public IEnumerable<UserPreviewModel> GetAll()
     {
         IEnumerable<User> users = _applicationContext.Users.GetAll();
-
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<UserPreviewModel> userPreviewModels = mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
+        
+        IEnumerable<UserPreviewModel> userPreviewModels = _mapper.Map<IEnumerable<UserPreviewModel>>(users);
         
         return userPreviewModels;
     }
@@ -35,18 +34,7 @@ public class UsersService
     {
         User user = _applicationContext.Users.Get(userId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<User, UserViewModel>();
-
-            cfg.CreateMap<User, UserPreviewModel>();
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        UserViewModel userViewModel = mapper.Map<User, UserViewModel>(user);
+        UserViewModel userViewModel = _mapper.Map<UserViewModel>(user);
         if (user.IsFreeze)
             return userViewModel;
 
@@ -55,10 +43,10 @@ public class UsersService
         Image? avatar = _applicationContext.Images.GetUserAvatar(userId);
         IEnumerable<Image> photos = _applicationContext.Images.GetUserPhotos(userId);
 
-        userViewModel.Communities = mapper.Map<IEnumerable<Community>, List<CommunityPreviewModel>>(communities);
-        userViewModel.Friends = mapper.Map<IEnumerable<User>, List<UserPreviewModel>>(friends);
-        userViewModel.Photos = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(photos);
-        userViewModel.Avatar = avatar == null ? null : mapper.Map<Image, ImageViewModel>(avatar);
+        userViewModel.Communities = _mapper.Map<List<CommunityPreviewModel>>(communities);
+        userViewModel.Friends = _mapper.Map<List<UserPreviewModel>>(friends);
+        userViewModel.Photos = _mapper.Map<List<ImageViewModel>>(photos);
+        userViewModel.Avatar = avatar == null ? null : _mapper.Map<ImageViewModel>(avatar);
         
         return userViewModel;
     }
@@ -72,14 +60,7 @@ public class UsersService
         if(image == null)
             return null;
         
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(image);
         return imageViewModel;
     }
 
@@ -96,23 +77,15 @@ public class UsersService
 
         IEnumerable<User> userRecipientFriends = _applicationContext.Users.GetUserFriends(recipientId);
         if (userRecipientFriends.Any(x => x.Id == senderId)) throw new BadRequestException("User is already friends");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<FriendRequestAddModel, FriendRequest>();
-
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        FriendRequest friendRequest = mapper.Map<FriendRequestAddModel, FriendRequest>(friendRequestAddModel);
+        
+        FriendRequest friendRequest = _mapper.Map<FriendRequest>(friendRequestAddModel);
         User senderUser = _applicationContext.Users.Get(senderId);
         friendRequest.Sender = senderUser;
         friendRequest.RecipientId = recipientId;
         
         _applicationContext.FriendRequests.Add(friendRequest);
 
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(recipientUser);
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(recipientUser);
         return userPreviewModel;
     }
 
@@ -128,11 +101,8 @@ public class UsersService
             throw new BadRequestException("User is not in friends");
 
         _applicationContext.Users.DeleteUserFromFriend(senderId, userId);
-
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(userFriend);
+        
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(userFriend);
         return userPreviewModel;
     }
 
@@ -144,17 +114,10 @@ public class UsersService
         if (userEditModel.Id != userId && !usersRoles.Any(x => x.Name == RolesNameConstants.AdminRole))
             throw new ForbiddenException("User is not admin");
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<UserEditModel, User>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        User user = mapper.Map<UserEditModel, User>(userEditModel);
+        User user = _mapper.Map<User>(userEditModel);
         _applicationContext.Users.Update(user);
 
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(user);
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(user);
         return userPreviewModel;
     }
 
@@ -168,10 +131,7 @@ public class UsersService
         _applicationContext.Users.FreezeUser(userId);
         user.IsFreeze = true;
 
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(user);
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(user);
         return userPreviewModel;
     }
 
@@ -184,11 +144,8 @@ public class UsersService
         
         _applicationContext.Users.UnfreezeUser(userId);
         user.IsFreeze = false;
-        
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
 
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(user);
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(user);
         return userPreviewModel;
     }
 }

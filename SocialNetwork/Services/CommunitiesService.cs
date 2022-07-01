@@ -12,21 +12,19 @@ namespace SocialNetwork.Services;
 public class CommunitiesService
 {
     private readonly IApplicationContext _applicationContext;
+    private readonly IMapper _mapper;
 
-    public CommunitiesService(IApplicationContext applicationContext)
+    public CommunitiesService(IApplicationContext applicationContext, IMapper mapper)
     {
         _applicationContext = applicationContext;
+        _mapper = mapper;
     }
 
     public IEnumerable<CommunityPreviewModel> GetAll()
     {
         IEnumerable<Community> communities = _applicationContext.Communities.GetAll();
 
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<CommunityPreviewModel> communityPreviewModels =
-            mapper.Map<IEnumerable<Community>, IEnumerable<CommunityPreviewModel>>(communities);
+        IEnumerable<CommunityPreviewModel> communityPreviewModels = _mapper.Map<IEnumerable<CommunityPreviewModel>>(communities);
 
         return communityPreviewModels;
     }
@@ -35,24 +33,16 @@ public class CommunitiesService
     {
         IEnumerable<Community> communities = _applicationContext.Communities.GetFollowedCommunity(userId);
 
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<CommunityPreviewModel> communityPreviewModels =
-            mapper.Map<IEnumerable<Community>, IEnumerable<CommunityPreviewModel>>(communities);
+        IEnumerable<CommunityPreviewModel> communityPreviewModels = _mapper.Map<IEnumerable<CommunityPreviewModel>>(communities);
 
         return communityPreviewModels;
     }
-
+ 
     public IEnumerable<CommunityPreviewModel> GetManaged(int userId)
     {
         IEnumerable<Community> communities = _applicationContext.Communities.GetManagedCommunity(userId);
 
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<CommunityPreviewModel> communityPreviewModels =
-            mapper.Map<IEnumerable<Community>, IEnumerable<CommunityPreviewModel>>(communities);
+        IEnumerable<CommunityPreviewModel> communityPreviewModels = _mapper.Map<IEnumerable<CommunityPreviewModel>>(communities);
 
         return communityPreviewModels;
     }
@@ -60,34 +50,24 @@ public class CommunitiesService
     public CommunityViewModel GetWithPosts(int communityId, int userId)
     {
         Community community = _applicationContext.Communities.Get(communityId);
+        IEnumerable<Post> posts = _applicationContext.Posts.GetPostsFromCommunity(communityId); 
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Community, CommunityViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<PostViewModel> postViewModels = mapper.Map<IEnumerable<Post>, IEnumerable<PostViewModel>>(_applicationContext.Posts.GetPostsFromCommunity(communityId));
+        IEnumerable<PostViewModel> postViewModels = _mapper.Map<IEnumerable<PostViewModel>>(posts);
         foreach (var postViewModel in postViewModels)
         {
-            postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+            postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
 
             IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postViewModel.Id);
-            postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+            postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
             
             postViewModel.IsUserLike = _applicationContext.Posts.IsUserLike(userId, postViewModel.Id);
         }
         
-        CommunityViewModel communityViewModel = mapper.Map<Community, CommunityViewModel>(community);
+        CommunityViewModel communityViewModel = _mapper.Map<CommunityViewModel>(community);
         communityViewModel.Posts = postViewModels.ToList();
 
         Image? avatar = _applicationContext.Images.GetCommunityAvatar(communityViewModel.Id);
-        communityViewModel.Avatar = avatar == null ? null : mapper.Map<Image, ImageViewModel>(avatar);
+        communityViewModel.Avatar = avatar == null ? null : _mapper.Map<ImageViewModel>(avatar);
 
         return communityViewModel;
     }
@@ -100,15 +80,8 @@ public class CommunitiesService
 
         if (image == null)
             return null;
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
 
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(image);
         return imageViewModel;
     }
 
@@ -121,11 +94,8 @@ public class CommunitiesService
         
         _applicationContext.Communities.SubscribeUserToCommunity(communityId, userId);
         
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
         Community updatedCommunity = _applicationContext.Communities.Get(communityId);
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
+        CommunityPreviewModel communityPreviewModel = _mapper.Map<CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 
@@ -137,12 +107,9 @@ public class CommunitiesService
             throw new BadRequestException("User is not member of community");
         
         _applicationContext.Communities.UnsubscribeUserFromCommunity(communityId, userId);
-        
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-        
+
         Community updatedCommunity = _applicationContext.Communities.Get(communityId);
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
+        CommunityPreviewModel communityPreviewModel = _mapper.Map<CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 
@@ -150,20 +117,13 @@ public class CommunitiesService
     {
         User author = _applicationContext.Users.Get(userId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CommunityAddModel, Community>();
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Community community = mapper.Map<CommunityAddModel, Community>(communityAddModel);
+        Community community = _mapper.Map<Community>(communityAddModel);
         community.Author = author;
         
         _applicationContext.Communities.Add(community);
         _applicationContext.Images.SetDefaultValueForCommunityAvatar(community.Id);
 
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
+        CommunityPreviewModel communityPreviewModel = _mapper.Map<CommunityPreviewModel>(community);
         return communityPreviewModel;
     }
 
@@ -173,18 +133,11 @@ public class CommunitiesService
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CommunityEditModel, Community>();
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Community updatedCommunity = mapper.Map<CommunityEditModel, Community>(communityEditModel);
+        
+        Community updatedCommunity = _mapper.Map<Community>(communityEditModel);
         _applicationContext.Communities.Update(updatedCommunity);
 
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(updatedCommunity);
+        CommunityPreviewModel communityPreviewModel = _mapper.Map<CommunityPreviewModel>(updatedCommunity);
         return communityPreviewModel;
     }
 
@@ -194,21 +147,11 @@ public class CommunitiesService
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<ImageAddModel, Image>().ForMember(nameof(Image.ImageData), opt =>
-                opt.MapFrom(x => Convert.FromBase64String(x.ImageData)));
-
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
 
         Image newAvatar;
         try
         {
-            newAvatar = mapper.Map<ImageAddModel, Image>(imageAddModel);
+            newAvatar = _mapper.Map<Image>(imageAddModel);
         }
         catch (Exception e)
         {
@@ -223,7 +166,7 @@ public class CommunitiesService
         _applicationContext.Images.Add(newAvatar);
         _applicationContext.Images.UpdateCommunityAvatar(communityId, newAvatar.Id);
 
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(newAvatar);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(newAvatar);
         return imageViewModel;
     }
 
@@ -235,11 +178,8 @@ public class CommunitiesService
             throw new NotFoundException("Community not found");
         
         _applicationContext.Communities.Delete(communityId);
-        
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<Community, CommunityPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
 
-        CommunityPreviewModel communityPreviewModel = mapper.Map<Community, CommunityPreviewModel>(community);
+        CommunityPreviewModel communityPreviewModel = _mapper.Map<CommunityPreviewModel>(community);
         return communityPreviewModel;
     }
 
@@ -251,31 +191,18 @@ public class CommunitiesService
 
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<PostAddModel, Post>();
-            cfg.CreateMap<ImageAddModel, Image>().ForMember(nameof(Image.ImageData), opt =>
-                opt.MapFrom(x => Convert.FromBase64String(x.ImageData)));
 
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
         IEnumerable<Image> images;
         try
         {
-            images = mapper.Map<List<ImageAddModel>, IEnumerable<Image>>(postAddModel.Images);
+            images = _mapper.Map<IEnumerable<Image>>(postAddModel.Images);
         }
         catch (Exception e)
         {
             throw new BadRequestException(e.Message);
         }
         
-        Post post = mapper.Map<PostAddModel, Post>(postAddModel);
+        Post post = _mapper.Map<Post>(postAddModel);
         post.CommunityId = communityId;
         
         _applicationContext.Posts.Add(post);
@@ -286,9 +213,9 @@ public class CommunitiesService
            _applicationContext.Images.AddImageToPost(post.Id, image.Id);
         }
 
-        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
-        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
-        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        PostViewModel postViewModel = _mapper.Map<PostViewModel>(post);
+        postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
+        postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
         return postViewModel;
     }
 
@@ -300,24 +227,13 @@ public class CommunitiesService
         if (community.Author.Id != userId)
             throw new NotFoundException("Community not found");
         
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<PostEditModel, Post>();
-            
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        Post updatedPost = mapper.Map<PostEditModel, Post>(postEditModel);
+        Post updatedPost = _mapper.Map<Post>(postEditModel);
         _applicationContext.Posts.Update(updatedPost);
         
-        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(updatedPost);
-        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        PostViewModel postViewModel = _mapper.Map<PostViewModel>(updatedPost);
+        postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
         IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postEditModel.Id);
-        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
         postViewModel.IsUserLike = _applicationContext.Posts.IsUserLike(userId, postViewModel.Id);
 
         return postViewModel;
@@ -340,18 +256,9 @@ public class CommunitiesService
             _applicationContext.Images.Delete(image.Id);    
         }
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
-        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
-        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        PostViewModel postViewModel = _mapper.Map<PostViewModel>(post);
+        postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
+        postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
         postViewModel.IsUserLike = _applicationContext.Posts.IsUserLike(userId, postViewModel.Id);
 
         return postViewModel;
@@ -364,14 +271,10 @@ public class CommunitiesService
     public IEnumerable<UserPreviewModel> GetUsersWhoLikePost(int postId)
     {
         _applicationContext.Posts.Get(postId);
-
-        var mapperConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfiguration);
-
+        
         IEnumerable<User> users = _applicationContext.Users.GetUsersWhoLikePost(postId);
 
-        IEnumerable<UserPreviewModel> userPreviewModels =
-            mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
+        IEnumerable<UserPreviewModel> userPreviewModels = _mapper.Map<IEnumerable<UserPreviewModel>>(users);
 
         return userPreviewModels;
     }
@@ -384,21 +287,12 @@ public class CommunitiesService
             throw new BadRequestException("User already like post");
         
         _applicationContext.Posts.AddLike(userId, postId);
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+
+        PostViewModel postViewModel = _mapper.Map<PostViewModel>(post);
         Community community = _applicationContext.Communities.Get(post.CommunityId);
-        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
         IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postId);
-        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
         postViewModel.IsUserLike = true;
         postViewModel.LikesCount++;
 
@@ -414,20 +308,11 @@ public class CommunitiesService
         
         _applicationContext.Posts.DeleteLike(userId, postId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Post, PostViewModel>();
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-            cfg.CreateMap<Community, CommunityPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        PostViewModel postViewModel = mapper.Map<Post, PostViewModel>(post);
+        PostViewModel postViewModel = _mapper.Map<PostViewModel>(post);
         Community community = _applicationContext.Communities.Get(post.CommunityId);
-        postViewModel.Community = mapper.Map<Community, CommunityPreviewModel>(community);
+        postViewModel.Community = _mapper.Map<CommunityPreviewModel>(community);
         IEnumerable<Image> images = _applicationContext.Images.GetPostImages(postId);
-        postViewModel.Images = mapper.Map<IEnumerable<Image>, List<ImageViewModel>>(images);
+        postViewModel.Images = _mapper.Map<List<ImageViewModel>>(images);
         postViewModel.IsUserLike = false;
         postViewModel.LikesCount--;
 
@@ -442,16 +327,9 @@ public class CommunitiesService
     {
         _applicationContext.Posts.Get(postId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
         IEnumerable<Comment> comments = _applicationContext.Comments.GetPostComments(postId);
 
-        IEnumerable<CommentViewModel> commentViewModels = mapper.Map<IEnumerable<Comment>, IEnumerable<CommentViewModel>>(comments);
+        IEnumerable<CommentViewModel> commentViewModels = _mapper.Map<IEnumerable<CommentViewModel>>(comments);
         foreach (var commentViewModel in commentViewModels)
         {
             commentViewModel.IsUserLike = _applicationContext.Comments.IsUserLike(userId,commentViewModel.Id);
@@ -464,23 +342,14 @@ public class CommunitiesService
     {
         _applicationContext.Posts.Get(postId);
         
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CommentAddModel, Comment>();
-            
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Comment comment = mapper.Map<CommentAddModel, Comment>(commentAddModel);
+        Comment comment = _mapper.Map<Comment>(commentAddModel);
         User user = _applicationContext.Users.Get(userId);
         comment.User = user;
         comment.PostId = postId;
         
         _applicationContext.Comments.Add(comment);
 
-        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+        CommentViewModel commentViewModel = _mapper.Map<CommentViewModel>(comment);
         return commentViewModel;
     }
 
@@ -491,20 +360,11 @@ public class CommunitiesService
         if (comment.User.Id != userId)
             throw new NotFoundException("Comment not found");
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<CommentEditModel, Comment>();
-
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        Comment updatedComment = mapper.Map<CommentEditModel, Comment>(commentEditModel);
+        Comment updatedComment = _mapper.Map<Comment>(commentEditModel);
         _applicationContext.Comments.Update(updatedComment);
         
-        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(updatedComment);
-        commentViewModel.User = mapper.Map<User, UserPreviewModel>(comment.User);
+        CommentViewModel commentViewModel = _mapper.Map<CommentViewModel>(updatedComment);
+        commentViewModel.User = _mapper.Map<UserPreviewModel>(comment.User);
         commentViewModel.IsUserLike = _applicationContext.Comments.IsUserLike(userId,comment.Id);
         return commentViewModel;
     }
@@ -518,14 +378,7 @@ public class CommunitiesService
         
         _applicationContext.Comments.Delete(commentId);
         
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+        CommentViewModel commentViewModel = _mapper.Map<CommentViewModel>(comment);
         commentViewModel.IsUserLike = _applicationContext.Comments.IsUserLike(userId,commentId);
         return commentViewModel;
     }
@@ -537,14 +390,10 @@ public class CommunitiesService
      public IEnumerable<UserPreviewModel> GetUsersWhoLikeComment(int commentId)
     {
         _applicationContext.Comments.Get(commentId);
-
-        var mapperConfiguration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfiguration);
-
+        
         IEnumerable<User> users = _applicationContext.Users.GetUsersWhoLikeComment(commentId);
 
-        IEnumerable<UserPreviewModel> userPreviewModels =
-            mapper.Map<IEnumerable<User>, IEnumerable<UserPreviewModel>>(users);
+        IEnumerable<UserPreviewModel> userPreviewModels = _mapper.Map<IEnumerable<UserPreviewModel>>(users);
 
         return userPreviewModels;
     }
@@ -557,15 +406,8 @@ public class CommunitiesService
             throw new BadRequestException("User already like comment");
         
         _applicationContext.Comments.AddLike(userId, commentId);
-        
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-        
-        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+
+        CommentViewModel commentViewModel = _mapper.Map<CommentViewModel>(comment);
         commentViewModel.IsUserLike = true;
         commentViewModel.LikesCount++;
 
@@ -580,15 +422,8 @@ public class CommunitiesService
             throw new BadRequestException("User didn't like comment");
         
         _applicationContext.Comments.DeleteLike(userId, commentId);
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Comment, CommentViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
         
-        CommentViewModel commentViewModel = mapper.Map<Comment, CommentViewModel>(comment);
+        CommentViewModel commentViewModel = _mapper.Map<CommentViewModel>(comment);
         commentViewModel.IsUserLike = false;
         commentViewModel.LikesCount--;
 

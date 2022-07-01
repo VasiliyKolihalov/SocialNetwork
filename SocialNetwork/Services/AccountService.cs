@@ -5,40 +5,32 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models;
-using SocialNetwork.Models.Communities;
 using SocialNetwork.Models.FriendsRequests;
 using SocialNetwork.Models.Images;
 using SocialNetwork.Models.Roles;
 using SocialNetwork.Models.Users;
 using SocialNetwork.Repositories;
-using SocialNetwork.Repository;
 
 namespace SocialNetwork.Services;
 
 public class AccountService
 {
     private readonly IApplicationContext _applicationContext;
+    private readonly IMapper _mapper;
     private readonly IOptions<JwtAuthenticationOptions> _jwtAuthOptions;
 
-    public AccountService(IApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions)
+    public AccountService(IApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions, IMapper mapper)
     {
         _applicationContext = applicationContext;
         _jwtAuthOptions = jwtAuthOptions;
+        _mapper = mapper;
     }
 
     public IEnumerable<FriendsRequestViewModel> GetFriendRequests(int userId)
     {
         IEnumerable<FriendRequest> friendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(userId);
-
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<FriendRequest, FriendsRequestViewModel>();
-            cfg.CreateMap<User, UserPreviewModel>();
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels =
-            mapper.Map<IEnumerable<FriendRequest>, IEnumerable<FriendsRequestViewModel>>(friendRequests);
+        
+        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels = _mapper.Map<IEnumerable<FriendsRequestViewModel>>(friendRequests);
         return friendsRequestViewModels;
     }
 
@@ -50,31 +42,18 @@ public class AccountService
 
         _applicationContext.Users.AddUserToFriends(userId, friendRequest.Sender.Id);
         _applicationContext.FriendRequests.Delete(friendRequestId);
-
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<User, UserPreviewModel>());
-        var mapper = new Mapper(mapperConfig);
-
+        
         User userFriend = _applicationContext.Users.Get(friendRequest.Sender.Id);
-        UserPreviewModel userPreviewModel = mapper.Map<User, UserPreviewModel>(userFriend);
+        UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(userFriend);
         return userPreviewModel;
     }
 
     public ImageViewModel AddPhotoToAccount(ImageAddModel imageAddModel, int userId)
     {
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<ImageAddModel, Image>().ForMember(nameof(Image.ImageData), opt =>
-                opt.MapFrom(x => Convert.FromBase64String(x.ImageData)));
-
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
         Image image;
         try
         {
-            image = mapper.Map<ImageAddModel, Image>(imageAddModel);
+            image = _mapper.Map<Image>(imageAddModel);
         }
         catch (Exception e)
         {
@@ -85,7 +64,7 @@ public class AccountService
         _applicationContext.Images.Add(image);
         _applicationContext.Images.AddPhotoToUser(userId, image.Id);
 
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(image);
         return imageViewModel;
     }
 
@@ -99,14 +78,7 @@ public class AccountService
         _applicationContext.Images.DeletePhotoFromUser(userId, imageId);
         _applicationContext.Images.Delete(imageId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(image);
         return imageViewModel;
     }
 
@@ -119,24 +91,15 @@ public class AccountService
 
         _applicationContext.Images.UpdateUserAvatar(imageId, userId);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Image, ImageViewModel>().ForMember(nameof(ImageViewModel.ImageData), opt =>
-                opt.MapFrom(x => Convert.ToBase64String(x.ImageData)));
-        });
-        var mapper = new Mapper(mapperConfig);
-
-        ImageViewModel imageViewModel = mapper.Map<Image, ImageViewModel>(image);
+        ImageViewModel imageViewModel = _mapper.Map<ImageViewModel>(image);
         return imageViewModel;
     }
 
     public string Register(RegisterUserModel registerUserModel)
     {
-        var mapperConfig = new MapperConfiguration(cfg => cfg.CreateMap<RegisterUserModel, User>());
-        var mapper = new Mapper(mapperConfig);
-
-        User user = mapper.Map<RegisterUserModel, User>(registerUserModel);
+        User user = _mapper.Map<User>(registerUserModel);
         user.PasswordHash = PasswordHasher.HashPassword(registerUserModel.Password);
+        
         try
         {
             _applicationContext.Users.Add(user);
