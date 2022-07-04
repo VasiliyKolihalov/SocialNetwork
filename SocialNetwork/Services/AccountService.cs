@@ -1,8 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scriban;
 using SocialNetwork.Exceptions;
 using SocialNetwork.Models;
 using SocialNetwork.Models.FriendsRequests;
@@ -18,19 +20,23 @@ public class AccountService
     private readonly IApplicationContext _applicationContext;
     private readonly IMapper _mapper;
     private readonly IOptions<JwtAuthenticationOptions> _jwtAuthOptions;
+    private readonly EmailService _emailService;
 
-    public AccountService(IApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions, IMapper mapper)
+    public AccountService(IApplicationContext applicationContext, IOptions<JwtAuthenticationOptions> jwtAuthOptions,
+        IMapper mapper, EmailService emailService)
     {
         _applicationContext = applicationContext;
         _jwtAuthOptions = jwtAuthOptions;
         _mapper = mapper;
+        _emailService = emailService;
     }
 
     public IEnumerable<FriendsRequestViewModel> GetFriendRequests(int userId)
     {
         IEnumerable<FriendRequest> friendRequests = _applicationContext.FriendRequests.GetUserFriendsRequests(userId);
-        
-        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels = _mapper.Map<IEnumerable<FriendsRequestViewModel>>(friendRequests);
+
+        IEnumerable<FriendsRequestViewModel> friendsRequestViewModels =
+            _mapper.Map<IEnumerable<FriendsRequestViewModel>>(friendRequests);
         return friendsRequestViewModels;
     }
 
@@ -42,7 +48,7 @@ public class AccountService
 
         _applicationContext.Users.AddUserToFriends(userId, friendRequest.Sender.Id);
         _applicationContext.FriendRequests.Delete(friendRequestId);
-        
+
         User userFriend = _applicationContext.Users.Get(friendRequest.Sender.Id);
         UserPreviewModel userPreviewModel = _mapper.Map<UserPreviewModel>(userFriend);
         return userPreviewModel;
@@ -99,7 +105,7 @@ public class AccountService
     {
         User user = _mapper.Map<User>(registerUserModel);
         user.PasswordHash = PasswordHasher.HashPassword(registerUserModel.Password);
-        
+
         try
         {
             _applicationContext.Users.Add(user);
@@ -117,10 +123,10 @@ public class AccountService
     public string Login(LoginUserModel loginUserModel)
     {
         User user = _applicationContext.Users.GetFromEmail(loginUserModel.Email);
-        
+
         if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, loginUserModel.Password))
             throw new BadRequestException("Incorrect login or password");
-        
+
         if (user.IsFreeze)
             throw new ForbiddenException("User is freeze");
 
@@ -130,7 +136,7 @@ public class AccountService
     public string ChangePassword(ChangeUserPasswordModel changeModel)
     {
         User user = _applicationContext.Users.GetFromEmail(changeModel.Email);
-        
+
         if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, changeModel.OldPassword))
             throw new BadRequestException("Incorrect login or password");
 
@@ -138,6 +144,54 @@ public class AccountService
         _applicationContext.Users.ChangePasswordHash(user.Id, user.PasswordHash);
 
         return GenerateJwt(user);
+    }
+
+    public string GenerateConfirmCode(int userId)
+    {
+        User user = _applicationContext.Users.Get(userId);
+        
+        if (user.IsConfirmEmail)
+            throw new BadRequestException("User email is already confirm");
+
+        if (_applicationContext.Users.GetEmailConfirmCode(userId) != null)
+            throw new BadRequestException("Confirm code is already send");
+
+        Random random = new Random();
+        string code = random.Next(1000, 9999).ToString();
+        _applicationContext.Users.AddEmailConfirmCode(userId, code);
+        return code;
+    }
+    
+    public void SendConfirmCode(int userId, string callbackUrl)
+    {
+        User user = _applicationContext.Users.Get(userId);
+        
+        var htmlString = File.ReadAllText("HtmlViews/EmailConfirm.html");
+        Template template = Template.Parse(htmlString);
+        string message = template.Render(new {callback_url = callbackUrl});
+
+        _emailService.SendEmail(user.Email, "Подтверждение почты", message);
+    } 
+
+    public void ConfirmEmail(int userId, string code)
+    {
+        User user = _applicationContext.Users.Get(userId);
+
+        if (user.IsConfirmEmail)
+            throw new BadRequestException("User email is already confirm");
+        
+        string? confirmCode = _applicationContext.Users.GetEmailConfirmCode(userId);
+        
+        if (confirmCode == null)
+            throw new BadRequestException("User didn't ask for confirm code");
+
+        if (confirmCode != code)
+            throw new BadRequestException("Incorrect confirm code");
+        
+        _applicationContext.Users.DeleteEmailConfirmCode(userId);
+
+        user.IsConfirmEmail = true;
+        _applicationContext.Users.ConfirmUserEmail(userId);
     }
 
     private string GenerateJwt(User user)

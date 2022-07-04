@@ -24,11 +24,11 @@ public class CorrespondencesRepository : ICorrespondencesRepository
                 connection.Query<Correspondence>("SELECT * FROM Correspondences");
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
 
             string adminQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                         INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
             foreach (var correspondence in correspondences)
             {
@@ -51,11 +51,11 @@ public class CorrespondencesRepository : ICorrespondencesRepository
                 throw new NotFoundException("Correspondence not found");
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
 
             string adminQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                         INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
 
             correspondence.Users = connection.Query<User>(usersQuery, new {Id = correspondence.Id}).ToList();
@@ -113,11 +113,11 @@ public class CorrespondencesRepository : ICorrespondencesRepository
                 connection.Query<Correspondence>(correspondencesQuery, new {userId});
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN UsersCorrespondences ON Users.Id = UsersCorrespondences.UserId AND UsersCorrespondences.CorrespondenceId = @Id";
 
             string adminQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                         INNER JOIN Correspondences ON Users.Id = Correspondences.AdminId AND Correspondences.Id = @Id";
 
             foreach (var correspondence in correspondences)

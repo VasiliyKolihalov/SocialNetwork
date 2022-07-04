@@ -16,4 +16,10 @@ public interface IUsersRepository : IRepository<User, int>
     public void UnfreezeUser(int userId);
 
     public void ChangePasswordHash(int userId, string passwordHash);
+
+    public string? GetEmailConfirmCode(int userId);
+    public void AddEmailConfirmCode(int userId, string code);
+    public void DeleteEmailConfirmCode(int userId);
+    public void ConfirmUserEmail(int userId);
+
 }

@@ -23,7 +23,7 @@ public class FriendRequestsRepository : IFriendRequestsRepository
         {
             IEnumerable<FriendRequest> friendRequests = connection.Query<FriendRequest>("SELECT * FROM FriendRequests");
             string senderQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN FriendRequests ON Users.Id = FriendRequests.SenderId AND FriendRequests.Id = @Id";
             foreach (var friendRequest in friendRequests)
             {
@@ -45,7 +45,7 @@ public class FriendRequestsRepository : IFriendRequestsRepository
                 throw new NotFoundException("Friend request not found");
 
             string senderQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN FriendRequests ON Users.Id = FriendRequests.SenderId AND FriendRequests.Id = @Id";
             friendRequest.Sender = connection.QuerySingle<User>(senderQuery, new {Id = friendRequest.Id});
 
@@ -96,7 +96,7 @@ public class FriendRequestsRepository : IFriendRequestsRepository
                 connection.Query<FriendRequest>(friendRequestsQuery, new {userId});
 
             string senderQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN FriendRequests ON Users.Id = FriendRequests.SenderId AND FriendRequests.Id = @Id";
             foreach (var friendRequest in friendRequests)
             {

@@ -101,4 +101,30 @@ public class AccountController : ControllerBase
         string token = _accountService.ChangePassword(changeModel);
         return Ok(new {Token = token});
     }
+
+    [Authorize]
+    [Route("SendConfirmCode")]
+    [HttpPost]
+    public ActionResult SendConfirmCode()
+    {
+        int userId = this.GetUserIdFromClaims();
+        string confirmCode = _accountService.GenerateConfirmCode(userId);
+        string callbackUrl = Url.Action(
+            action: nameof(ConfirmEmail),
+            controller: "Account",
+            values: new {userId = userId, code = confirmCode},
+            protocol: HttpContext.Request.Scheme)!;
+        
+        _accountService.SendConfirmCode(userId, callbackUrl);
+        return Ok();
+    }
+
+    [AllowAnonymous]
+    [Route("ConfirmEmail")]
+    [HttpGet]
+    public ActionResult ConfirmEmail(int userId, string code)
+    {
+        _accountService.ConfirmEmail(userId, code);
+        return Ok();
+    }
 }
