@@ -1,4 +1,4 @@
-﻿# SocialNetwork
+# SocialNetwork
 
 ---
 
@@ -18,6 +18,8 @@ SocialNetwork выполняет функцию социальной сети
 * Automapper
 * Moq
 * Xunit
+* MailKit
+* Scriban
 
 ---
 
@@ -41,3 +43,4 @@ Microsoft SQL Server
 * Картинки для пользователей и постов
 * Лайки для постов и комментариев
 * Заморозка и разморозка пользователей
+* Подтверждение почты
