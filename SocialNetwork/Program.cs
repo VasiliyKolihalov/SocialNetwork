@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("jwtauthsettings.json");
 builder.Configuration.AddJsonFile("admindata.json");
+builder.Configuration.AddJsonFile("companysettings.json");
 
 #endregion
 
@@ -57,6 +58,7 @@ builder.Services.AddTransient<AccountService>();
 builder.Services.AddTransient<CorrespondencesService>();
 builder.Services.AddTransient<RolesService>();
 builder.Services.AddTransient<CommunitiesService>();
+builder.Services.AddScoped<EmailService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 

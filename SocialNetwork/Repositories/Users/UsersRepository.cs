@@ -41,7 +41,7 @@ public class UsersRepository : IUsersRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             var sqlQuery =
-                "INSERT INTO Users VALUES (@FirstName, @SecondName, @Email, @PasswordHash, DEFAULT) SELECT @@IDENTITY";
+                "INSERT INTO Users VALUES (@FirstName, @SecondName, @Email, @PasswordHash, DEFAULT, DEFAULT) SELECT @@IDENTITY";
             int userId = connection.QuerySingle<int>(sqlQuery, item);
             item.Id = userId;
         }
@@ -115,7 +115,7 @@ public class UsersRepository : IUsersRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             string sqlQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                  INNER JOIN PostsLikes ON Users.Id = PostsLikes.UserId AND PostsLikes.PostId = postId";
 
             IEnumerable<User> users = connection.Query<User>(sqlQuery, new {postId});
@@ -128,7 +128,7 @@ public class UsersRepository : IUsersRepository
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
             string sqlQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                  INNER JOIN CommentsLikes ON Users.Id = CommentsLikes.UserId AND CommentsLikes.CommentId = commentId";
 
             IEnumerable<User> users = connection.Query<User>(sqlQuery, new {commentId});
@@ -140,7 +140,7 @@ public class UsersRepository : IUsersRepository
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
-            var sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
+            string sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
             connection.Query(sqlQuery, new {Value = true, Id = userId});
         }
     }
@@ -149,7 +149,7 @@ public class UsersRepository : IUsersRepository
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
-            var sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
+            string sqlQuery = "UPDATE Users SET IsFreeze = @Value WHERE Id = @Id";
             connection.Query(sqlQuery, new {Value = false, Id = userId});
         }
     }
@@ -158,8 +158,45 @@ public class UsersRepository : IUsersRepository
     {
         using (IDbConnection connection = new SqlConnection(_connectionString))
         {
-            var sqlQuery = "UPDATE Users SET PasswordHash = @passwordHash WHERE Id = @userId";
+            string sqlQuery = "UPDATE Users SET PasswordHash = @passwordHash WHERE Id = @userId";
             connection.Query(sqlQuery, new {passwordHash, userId});
+        }
+    }
+
+    public string? GetEmailConfirmCode(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "SELECT Code FROM UsersEmailConfirmCodes WHERE UserId = @userId";
+            string? code = connection.QueryFirstOrDefault<string>(sqlQuery, new {userId});
+            return code;
+        }
+    }
+
+    public void AddEmailConfirmCode(int userId, string code)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "INSERT INTO UsersEmailConfirmCodes VALUES (@userId, @code)";
+            connection.Query(sqlQuery, new {userId, code});
+        }
+    }
+
+    public void DeleteEmailConfirmCode(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "DELETE UsersEmailConfirmCodes WHERE UserId = @userId";
+            connection.Query(sqlQuery, new {userId});
+        }
+    }
+
+    public void ConfirmUserEmail(int userId)
+    {
+        using (IDbConnection connection = new SqlConnection(_connectionString))
+        {
+            string sqlQuery = "UPDATE Users SET IsConfirmEmail = @Value WHERE Id = @Id";
+            connection.Query(sqlQuery, new {Value = true, Id = userId});
         }
     }
 }

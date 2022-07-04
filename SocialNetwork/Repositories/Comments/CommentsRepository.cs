@@ -23,7 +23,8 @@ public class CommentsRepository : ICommentsRepository
             string commentsQuery = "SELECT * FROM Comments";
             IEnumerable<Comment> comments = connection.Query<Comment>(commentsQuery);
 
-            string userQuery = @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+            string userQuery =
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                  INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
             string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
 
@@ -48,13 +49,13 @@ public class CommentsRepository : ICommentsRepository
                 throw new NotFoundException("Comment not found");
 
             string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                  INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
             string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
-            
+
             comment.User = connection.QuerySingle<User>(userQuery, new {Id = comment.Id});
             comment.LikesCount = connection.QuerySingle<int>(likesCountQuery, new {Id = comment.Id});
-            
+
             return comment;
         }
     }
@@ -98,7 +99,7 @@ public class CommentsRepository : ICommentsRepository
             IEnumerable<Comment> comments = connection.Query<Comment>(commentsQuery, new {postId});
 
             string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                  INNER JOIN Comments ON Users.Id = Comments.UserId AND Comments.Id = @Id";
             string likesCountQuery = "SELECT COUNT(*) FROM CommentsLikes WHERE CommentId = @Id";
 

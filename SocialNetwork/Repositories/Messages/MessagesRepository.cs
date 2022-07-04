@@ -23,7 +23,7 @@ public class MessagesRepository : IMessagesRepository
             IEnumerable<Message> messages = connection.Query<Message>("SELECT * FROM Messages ");
 
             string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
 
             foreach (var message in messages)
@@ -46,7 +46,7 @@ public class MessagesRepository : IMessagesRepository
                 throw new NotFoundException("Message not found");
 
             string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
 
             message.Sender = connection.QuerySingle<User>(userQuery, new {Id = message.Id});
@@ -101,7 +101,7 @@ public class MessagesRepository : IMessagesRepository
                     new {Id = correspondenceId});
 
             string userQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users 
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                 INNER JOIN Messages ON Users.Id = Messages.UserId AND Messages.Id = @Id";
 
             foreach (var message in messages)

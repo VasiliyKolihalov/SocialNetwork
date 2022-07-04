@@ -23,11 +23,11 @@ public class CommunitiesRepository : ICommunitiesRepository
             IEnumerable<Community> communities = connection.Query<Community>("SELECT * FROM Communities");
 
             string authorQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN Communities ON Users.Id = Communities.AuthorId AND Communities.Id = @Id";
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN UsersCommunities ON Users.Id = UsersCommunities.UserId AND UsersCommunities.CommunityId = @Id";
 
             foreach (var community in communities)
@@ -50,11 +50,11 @@ public class CommunitiesRepository : ICommunitiesRepository
                 throw new NotFoundException("Community not found");
 
             string authorQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN Communities ON Users.Id = Communities.AuthorId AND Communities.Id = @Id";
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN UsersCommunities ON Users.Id = UsersCommunities.UserId AND UsersCommunities.CommunityId = @Id";
 
             community.Author = connection.QuerySingle<User>(authorQuery, new {Id = community.Id});
@@ -110,11 +110,11 @@ public class CommunitiesRepository : ICommunitiesRepository
             IEnumerable<Community> communities = connection.Query<Community>(communitiesQuery, new {userId});
 
             string authorQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN Communities ON Users.Id = Communities.AuthorId AND Communities.Id = @Id";
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN UsersCommunities ON Users.Id = UsersCommunities.UserId AND UsersCommunities.CommunityId = @Id";
 
             foreach (var community in communities)
@@ -135,11 +135,11 @@ public class CommunitiesRepository : ICommunitiesRepository
                 connection.Query<Community>("SELECT * FROM Communities WHERE AuthorId = @userId", new {userId});
 
             string authorQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN Communities ON Users.Id = Communities.AuthorId AND Communities.Id = @Id";
 
             string usersQuery =
-                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash FROM Users
+                @"SELECT Users.Id, Users.FirstName, Users.SecondName, Users.Email, Users.PasswordHash, Users.IsFreeze FROM Users 
                                     INNER JOIN UsersCommunities ON Users.Id = UsersCommunities.UserId AND UsersCommunities.CommunityId = @Id";
 
             foreach (var community in communities)
