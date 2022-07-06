@@ -62,11 +62,13 @@ builder.Services.AddScoped<EmailService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
-
 #endregion
 
 var app = builder.Build();
 
+#region Middlewares
+
+app.UseHttpLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -74,15 +76,16 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.MapControllers();
 
+#endregion
+
 InitializeRolesAndAdministrator(app.Services.CreateScope().ServiceProvider.GetRequiredService<IApplicationContext>(), app.Configuration);
 
 app.Run();
 
-
 static void InitializeRolesAndAdministrator(IApplicationContext applicationContext, IConfiguration configuration)
 {
     var adminData = configuration.GetSection("AdminData");
-    
+
     User admin;
     try
     {
@@ -112,7 +115,7 @@ static void InitializeRolesAndAdministrator(IApplicationContext applicationConte
 
 
     IEnumerable<Role> roles = applicationContext.Roles.GetFromUserId(admin.Id);
-    
+
     if (!roles.Any(x => x.Name == RolesNameConstants.AdminRole))
-            applicationContext.Roles.AddRoleToUser(admin.Id, adminRole.Id);
+        applicationContext.Roles.AddRoleToUser(admin.Id, adminRole.Id);
 }
