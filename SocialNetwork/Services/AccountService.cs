@@ -104,6 +104,7 @@ public class AccountService
     public string Register(RegisterUserModel registerUserModel)
     {
         User user = _mapper.Map<User>(registerUserModel);
+        ValidatePassword(registerUserModel.Password);
         user.PasswordHash = PasswordHasher.HashPassword(registerUserModel.Password);
 
         try
@@ -136,10 +137,12 @@ public class AccountService
     public string ChangePassword(ChangeUserPasswordModel changeModel)
     {
         User user = _applicationContext.Users.GetFromEmail(changeModel.Email);
-
+        
         if (!PasswordHasher.VerifyHashedPassword(user.PasswordHash, changeModel.OldPassword))
             throw new BadRequestException("Incorrect login or password");
 
+        ValidatePassword(changeModel.NewPassword);
+        
         user.PasswordHash = PasswordHasher.HashPassword(changeModel.NewPassword);
         _applicationContext.Users.ChangePasswordHash(user.Id, user.PasswordHash);
 
@@ -221,5 +224,25 @@ public class AccountService
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private void ValidatePassword(string password)
+    {
+        if (password.Length < 8 || password.Length > 16)
+            throw new BadRequestException("Password length must be between 8 and 16 characters");
+
+        if (!password.Any(char.IsUpper))
+            throw new BadRequestException("Password must contain at least 1 capital letter");
+
+        if (!password.Any(char.IsLower))
+            throw new BadRequestException("Password must contain at least 1 uppercase letter");
+
+        if (password.Contains(' '))
+            throw new BadRequestException("Password must not include spaces");
+        
+        string specialCharacters = @"%!@#$%^&*()?/>.<,:;'\|}]{[_~`+=-" + "\"";
+        if (!specialCharacters.Any(password.Contains))
+            throw new BadRequestException("Password must contain special characters");
+        
     }
 }
